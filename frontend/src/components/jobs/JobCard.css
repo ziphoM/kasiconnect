@@ -1,0 +1,255 @@
+/* frontend/src/components/jobs/JobCard.css */
+
+.job-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.job-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid #FFE4D6;
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.job-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(255, 107, 53, 0.15);
+    border-color: #FF6B35;
+}
+
+/* Urgency Badge */
+.urgency-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 1;
+}
+
+/* Category */
+.job-category {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.category-icon {
+    width: 32px;
+    height: 32px;
+    background: #FFF1E6;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.category-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #FF6B35;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Title */
+.job-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+/* Description */
+.job-description {
+    color: #6B7280;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    flex-grow: 1;
+}
+
+/* Details */
+.job-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #F9FAFB;
+    border-radius: 12px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #4B5563;
+    font-size: 14px;
+}
+
+.detail-icon {
+    font-size: 16px;
+    width: 20px;
+}
+
+/* Footer */
+.job-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #FFE4D6;
+}
+
+.job-budget {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.budget-label {
+    font-size: 13px;
+    color: #6B7280;
+}
+
+.budget-amount {
+    font-size: 18px;
+    font-weight: 700;
+    color: #FF6B35;
+}
+
+.job-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.post-date {
+    font-size: 12px;
+    color: #9CA3AF;
+}
+
+.application-count {
+    font-size: 11px;
+    background: #F3F4F6;
+    padding: 2px 8px;
+    border-radius: 12px;
+    color: #6B7280;
+}
+
+/* Client */
+.job-client {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    padding-top: 8px;
+    border-top: 1px dashed #FFE4D6;
+}
+
+.client-label {
+    color: #6B7280;
+}
+
+.client-name {
+    font-weight: 600;
+    color: #1F2937;
+}
+
+/* Animation */
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.job-card {
+    animation: cardAppear 0.4s ease-out forwards;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .job-card {
+        padding: 20px;
+    }
+
+    .job-title {
+        font-size: 18px;
+    }
+
+    .job-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .job-meta {
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .budget-amount {
+        font-size: 16px;
+    }
+
+    .urgency-badge {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+}
+
+/* Hover Effects */
+.job-card:hover .job-title {
+    color: #FF6B35;
+}
+
+.job-card:hover .budget-amount {
+    transform: scale(1.05);
+}
+
+.job-card:hover .category-icon {
+    transform: rotate(5deg);
+}
+
+/* Loading Skeleton */
+.job-card.skeleton {
+    pointer-events: none;
+}
+
+.job-card.skeleton .job-title,
+.job-card.skeleton .job-description,
+.job-card.skeleton .detail-item,
+.job-card.skeleton .budget-amount {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    color: transparent;
+    border-radius: 4px;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}

@@ -1,0 +1,331 @@
+/* frontend/src/components/clients/ClientProfile.css */
+.client-profile-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.client-profile-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.client-profile-card h1 {
+    color: #1F2937;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.profile-avatar-large {
+    position: relative;
+    width: 100px;
+    height: 100px;
+}
+
+.avatar-initials {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: 700;
+    color: white;
+}
+
+.profile-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.upload-image-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    background: #FF6B35;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    border: 2px solid white;
+    transition: all 0.2s;
+}
+
+.upload-image-btn:hover {
+    background: #F45B1E;
+    transform: scale(1.1);
+}
+
+.profile-title h2 {
+    margin: 0 0 0.5rem 0;
+    color: #1F2937;
+}
+
+.profile-title p {
+    margin: 0;
+    color: #6B7280;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.image-preview-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.btn-save-image {
+    flex: 2;
+    padding: 0.75rem;
+    background: #10B981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-cancel-image {
+    flex: 1;
+    padding: 0.75rem;
+    background: #F3F4F6;
+    color: #6B7280;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.profile-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn-change-password {
+    flex: 1;
+    padding: 0.75rem;
+    background: #F3F4F6;
+    color: #4B5563;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-save-profile {
+    flex: 2;
+    padding: 0.75rem;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-save-profile:hover {
+    background: #2563EB;
+}
+
+.danger-zone {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #FEF2F2;
+    border: 2px solid #FCA5A5;
+    border-radius: 12px;
+}
+
+.danger-zone h3 {
+    color: #B91C1C;
+    margin-bottom: 1rem;
+}
+
+.danger-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.danger-info strong {
+    color: #991B1B;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.danger-info p {
+    color: #B91C1C;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.btn-delete-account {
+    padding: 0.75rem 1.5rem;
+    background: #DC2626;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-delete-account:hover {
+    background: #B91C1C;
+}
+
+/* Modal Styles (reuse from WorkerProfile) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+}
+
+.password-modal,
+.delete-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 450px;
+    width: 90%;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header.warning h2 {
+    color: #DC2626;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6B7280;
+}
+
+.password-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.password-form label {
+    display: block;
+    font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 0.5rem;
+}
+
+.password-form input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 8px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.btn-cancel {
+    flex: 1;
+    padding: 0.75rem;
+    background: #F3F4F6;
+    color: #6B7280;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-change,
+.btn-delete-confirm {
+    flex: 2;
+    padding: 0.75rem;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-delete-confirm {
+    background: #DC2626;
+}
+
+.warning-text {
+    background: #FEF2F2;
+    border: 1px solid #FCA5A5;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    color: #991B1B;
+}

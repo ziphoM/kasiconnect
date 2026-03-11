@@ -1,0 +1,400 @@
+/* frontend/src/components/vouchers/WorkerPassPurchase.css */
+
+/* Main Container */
+.pass-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+    padding: 40px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pass-card {
+    max-width: 1200px;
+    width: 100%;
+    background: white;
+    border-radius: 30px;
+    padding: 50px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Header */
+.pass-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.pass-header h1 {
+    font-size: 42px;
+    font-weight: 800;
+    color: #1F2937;
+    margin-bottom: 15px;
+}
+
+.pass-header p {
+    font-size: 18px;
+    color: #6B7280;
+}
+
+/* Error/Success Messages */
+.pass-error {
+    background: #FEE2E2;
+    border: 2px solid #FCA5A5;
+    color: #B91C1C;
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-weight: 500;
+}
+
+.pass-success {
+    background: #D1FAE5;
+    border: 2px solid #A7F3D0;
+    color: #065F46;
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-weight: 500;
+}
+
+/* Pass Grid */
+.pass-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-bottom: 50px;
+}
+
+/* Pass Cards */
+.pass-item {
+    background: #F9FAFB;
+    border: 3px solid #E5E7EB;
+    border-radius: 24px;
+    padding: 30px 25px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    text-align: center;
+}
+
+.pass-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.pass-item.selected {
+    background: white;
+    border-color: #667EEA;
+    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
+}
+
+.pass-item.popular {
+    border-color: #FF6B35;
+}
+
+/* Badges */
+.popular-badge {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #FF6B35;
+    color: white;
+    padding: 8px 25px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 4px 10px rgba(255, 107, 53, 0.3);
+}
+
+.pass-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #E5E7EB;
+    color: #4B5563;
+    padding: 5px 15px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Card Content */
+.pass-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.pass-item h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 15px;
+}
+
+.pass-price {
+    font-size: 42px;
+    font-weight: 800;
+    color: #667EEA;
+    margin-bottom: 10px;
+}
+
+.pass-apps {
+    font-size: 16px;
+    color: #6B7280;
+    margin-bottom: 10px;
+}
+
+.pass-savings {
+    background: #FEF3C7;
+    color: #92400E;
+    padding: 5px 15px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+.pass-desc {
+    color: #6B7280;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 15px 0;
+}
+
+/* Select Button */
+.pass-select-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 15px;
+}
+
+.pass-select-btn.selected {
+    cursor: default;
+}
+
+/* Order Summary */
+.summary-box {
+    background: #F9FAFB;
+    border-radius: 24px;
+    padding: 30px;
+    margin-bottom: 30px;
+    border: 2px solid #E5E7EB;
+}
+
+.summary-box h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 20px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-bottom: 1px solid #E5E7EB;
+    color: #4B5563;
+}
+
+.summary-row.total {
+    font-size: 20px;
+    font-weight: 700;
+    border-top: 2px solid #667EEA;
+    border-bottom: none;
+    margin-top: 15px;
+    padding-top: 20px;
+}
+
+.summary-total {
+    color: #667EEA;
+    font-size: 24px;
+}
+
+.summary-savings {
+    color: #10B981;
+    font-weight: 600;
+}
+
+/* Payment Section */
+.payment-box {
+    background: #F9FAFB;
+    border-radius: 24px;
+    padding: 30px;
+    margin-bottom: 30px;
+    border: 2px dashed #9CA3AF;
+}
+
+.payment-box h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 20px;
+}
+
+.payment-info {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    border: 1px solid #E5E7EB;
+}
+
+.payment-demo {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #E5E7EB;
+    margin-bottom: 20px;
+}
+
+.payment-icon {
+    font-size: 40px;
+    background: #EFF6FF;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+}
+
+.payment-demo strong {
+    display: block;
+    font-size: 18px;
+    color: #1F2937;
+    margin-bottom: 5px;
+}
+
+.payment-demo p {
+    color: #6B7280;
+}
+
+.bank-details {
+    background: #F9FAFB;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.bank-details p {
+    margin: 8px 0;
+    color: #4B5563;
+}
+
+.bank-details strong {
+    color: #1F2937;
+    width: 120px;
+    display: inline-block;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.btn-cancel {
+    flex: 1;
+    padding: 18px;
+    background: #F3F4F6;
+    color: #6B7280;
+    border: 2px solid #E5E7EB;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn-cancel:hover {
+    background: #E5E7EB;
+    color: #1F2937;
+}
+
+.btn-pay {
+    flex: 2;
+    padding: 18px;
+    background: #667EEA;
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.btn-pay:hover {
+    background: #5A67D8;
+    transform: translateY(-2px);
+}
+
+/* Trust Badges */
+.trust-badges {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding-top: 30px;
+    border-top: 2px solid #E5E7EB;
+}
+
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6B7280;
+}
+
+.trust-item span:first-child {
+    font-size: 20px;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+    .pass-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .pass-card {
+        padding: 30px 20px;
+    }
+
+    .pass-header h1 {
+        font-size: 32px;
+    }
+
+    .pass-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .payment-demo {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .trust-badges {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+}

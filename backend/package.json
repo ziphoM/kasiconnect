@@ -1,0 +1,38 @@
+{
+  "name": "kasiconnect-backend",
+  "version": "1.0.0",
+  "description": "KasiConnect Backend API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "migrate": "node scripts/migrate.js"
+  },
+  "dependencies": {
+    "africastalking": "^0.6.0",
+    "axios": "^1.6.2",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.40.0",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.29.4",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.17.4",
+    "node-cron": "^3.0.3",
+    "pg": "^8.11.3",
+    "rate-limiter-flexible": "^2.4.2",
+    "socket.io": "^4.7.2",
+    "twilio": "^4.19.3",
+    "winston": "^3.11.0",
+    "xss-clean": "^0.1.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
