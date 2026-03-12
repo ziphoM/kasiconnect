@@ -13,12 +13,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const cors = require('cors');
 
 // Allow both local and production URLs
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://your-domain.com', // Replace with your domain
+    'https://kasiconnect.onrender.com', // Replace with your domain
     'http://your-domain.com'
 ];
 
