@@ -6,7 +6,7 @@ const config = {
     },
     // For production - UPDATE THIS WITH YOUR ACTUAL SERVER URL
     production: {
-        API_URL: 'https://your-domain.com/api' // Change this to your domain
+        API_URL: 'https://kasiconnect.onrender.com/' // Change this to your domain
     }
 };
 
