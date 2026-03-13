@@ -9,9 +9,59 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+const express = require('express');
+const { pool, testConnection } = require('./db');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Test connection on startup
+testConnection().then(success => {
+  if (!success) {
+    console.warn('⚠️  Server starting but database connection failed!');
+  }
+});
+
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT VERSION() as version');
+    res.json({ 
+      status: 'connected', 
+      version: rows[0].version,
+      message: '✅ Connected to TiDB Cloud!' 
+    });
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({ 
+      status: 'error', 
+      message: error.message 
+    });
+  }
+});
+
+// Example endpoint to get data
+app.get('/api/users', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM users LIMIT 10');
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Graceful shutdown on Windows
+process.on('SIGINT', async () => {
+  console.log('Closing database connections...');
+  await pool.end();
+  process.exit(0);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 
 
 // Allow both local and production URLs
@@ -34,6 +84,8 @@ app.use(cors({
     },
     credentials: true
 }));
+
+
 
 const uploadDir = 'uploads/workers';
 if (!fs.existsSync(uploadDir)) {
@@ -3354,7 +3406,7 @@ app.get('/', (req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 5000;
+/*const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log('\n=================================');
     console.log('✅ KasiConnect Complete Backend v3.0');
@@ -3363,4 +3415,4 @@ app.listen(PORT, () => {
     console.log(`🗄️  Database: MySQL Connected`);
     console.log(`📊 Package System Active`);
     console.log('=================================\n');
-});
+});*/
