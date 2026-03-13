@@ -18,15 +18,20 @@ const app = express();
 // CORS configuration
 const allowedOrigins = [
     'http://localhost:3000',
+    'https://kasiconnect-frontend.onrender.com',
     'https://kasiconnect.onrender.com',
     process.env.CLIENT_URL
 ].filter(Boolean);
 
 app.use(cors({
     origin: function(origin, callback) {
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
+            console.log('❌ Blocked CORS request from:', origin);
             callback(new Error('CORS not allowed from this origin'));
         }
     },
@@ -409,6 +414,8 @@ app.get('/api/stats', async (req, res) => {
 app.get('/api/jobs', async (req, res) => {
     try {
         const { township, category, status = 'posted' } = req.query;
+        
+        console.log('📥 Jobs request received:', { township, category, status });
 
         let query = `
             SELECT j.*, 
@@ -434,8 +441,13 @@ app.get('/api/jobs', async (req, res) => {
 
         query += ' ORDER BY j.created_at DESC LIMIT 50';
 
+        console.log('📝 Executing query:', query);
+        console.log('📝 With params:', params);
+
         const [jobs] = await pool.execute(query, params);
         
+        console.log(`✅ Found ${jobs.length} jobs`);
+
         // Construct full URLs for profile pictures
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         jobs.forEach(job => {
@@ -449,11 +461,19 @@ app.get('/api/jobs', async (req, res) => {
         res.json({ success: true, data: jobs });
 
     } catch (error) {
-        console.error('❌ Get jobs error:', error);
+        console.error('❌❌❌ JOBS ENDPOINT ERROR ❌❌❌');
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error code:', error.code);
+        console.error('Error sql:', error.sql);
+        console.error('Error sqlMessage:', error.sqlMessage);
+        console.error('Full error:', error);
+        
         res.status(500).json({ 
             success: false, 
             message: 'Failed to fetch jobs',
-            error: error.message 
+            error: error.message,
+            sqlError: error.sqlMessage
         });
     }
 });
