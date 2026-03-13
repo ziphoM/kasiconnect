@@ -1,109 +1,77 @@
-// backend/server-complete.js
+// backend/server.js
 const express = require('express');
 const cors = require('cors');
-const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+require('dotenv').config();
 
-const express = require('express');
+// Import database connection
 const { pool, testConnection } = require('./db');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
 
-// Test connection on startup
-testConnection().then(success => {
-  if (!success) {
-    console.warn('⚠️  Server starting but database connection failed!');
-  }
-});
-
-// Health check endpoint
-app.get('/api/health', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT VERSION() as version');
-    res.json({ 
-      status: 'connected', 
-      version: rows[0].version,
-      message: '✅ Connected to TiDB Cloud!' 
-    });
-  } catch (error) {
-    console.error('Database error:', error);
-    res.status(500).json({ 
-      status: 'error', 
-      message: error.message 
-    });
-  }
-});
-
-// Example endpoint to get data
-app.get('/api/users', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT * FROM users LIMIT 10');
-    res.json(rows);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Graceful shutdown on Windows
-process.on('SIGINT', async () => {
-  console.log('Closing database connections...');
-  await pool.end();
-  process.exit(0);
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
-
-
-// Allow both local and production URLs
+// ========== MIDDLEWARE ==========
+// CORS configuration
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://kasiconnect.onrender.com', // Replace with your domain
-    'http://your-domain.com'
-];
+    'https://kasiconnect.onrender.com',
+    process.env.CLIENT_URL
+].filter(Boolean);
 
 app.use(cors({
     origin: function(origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl)
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.indexOf(origin) === -1) {
-            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-            return callback(new Error(msg), false);
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS not allowed from this origin'));
         }
-        return callback(null, true);
     },
     credentials: true
 }));
 
-
-
-const uploadDir = 'uploads/workers';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Serve uploaded files statically
+app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
-// Database connection
-const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'kasiconnect',
-    waitForConnections: true,
-    connectionLimit: 10,
-    enableKeepAlive: true
+// ========== DATABASE CONNECTION ==========
+// Test connection on startup
+testConnection().then(success => {
+    if (!success) {
+        console.warn('⚠️ Server starting but database connection failed!');
+    }
+});
+
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT VERSION() as version');
+        res.json({ 
+            success: true,
+            status: 'connected', 
+            version: rows[0].version,
+            database: process.env.TIDB_DATABASE,
+            message: '✅ Connected to TiDB Cloud!' 
+        });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ 
+            success: false,
+            status: 'error', 
+            message: error.message 
+        });
+    }
+});
+
+// ========== CREATE UPLOAD DIRECTORIES ==========
+const uploadDirs = ['uploads/workers', 'uploads/clients'];
+uploadDirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log(`📁 Created upload directory: ${dir}`);
+    }
 });
 
 // ========== AUTHENTICATION MIDDLEWARE ==========
@@ -115,7 +83,7 @@ const authenticateToken = (req, res, next) => {
         return res.status(401).json({ success: false, message: 'Access token required' });
     }
 
-    jwt.verify(token, 'kasiconnect-secret-key', (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET || 'kasiconnect-secret-key', (err, user) => {
         if (err) {
             return res.status(403).json({ success: false, message: 'Invalid or expired token' });
         }
@@ -194,7 +162,7 @@ app.post('/api/auth/register', [
                 phone: phone, 
                 name: name 
             },
-            'kasiconnect-secret-key',
+            process.env.JWT_SECRET || 'kasiconnect-secret-key',
             { expiresIn: '7d' }
         );
 
@@ -281,7 +249,7 @@ app.post('/api/auth/login', [
                 phone: user.phone, 
                 name: user.name 
             },
-            'kasiconnect-secret-key',
+            process.env.JWT_SECRET || 'kasiconnect-secret-key',
             { expiresIn: '7d' }
         );
 
@@ -359,7 +327,6 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
     }
 });
 
-// ========== STATS API ENDPOINT ==========
 // ========== STATS API ENDPOINT ==========
 app.get('/api/stats', async (req, res) => {
     try {
@@ -640,194 +607,324 @@ app.post('/api/jobs', authenticateToken, async (req, res) => {
     }
 });
 
-    // ========== FIXED HIRE WORKER ENDPOINT ==========
-    app.post('/api/jobs/:jobId/hire', authenticateToken, async (req, res) => {
-        const connection = await pool.getConnection();
-        
-        try {
-            const { jobId } = req.params;
-            const clientId = req.user.userId;
-            const { worker_id, agreed_rate } = req.body;
+// ========== JOB APPLICATION ENDPOINT ==========
+app.post('/api/jobs/:id/apply', authenticateToken, async (req, res) => {
+    const connection = await pool.getConnection();
+    
+    try {
+        const jobId = req.params.id;
+        const workerId = req.user.userId;
+        const { proposed_rate, message } = req.body;
 
-            console.log('='.repeat(50));
-            console.log('🤝 HIRE WORKER REQUEST');
-            console.log('Job ID:', jobId);
-            console.log('Client ID:', clientId);
-            console.log('Worker ID:', worker_id);
-            console.log('Agreed Rate:', agreed_rate);
-            console.log('='.repeat(50));
+        console.log('='.repeat(50));
+        console.log('📝 JOB APPLICATION REQUEST');
+        console.log('Job ID:', jobId);
+        console.log('Worker ID:', workerId);
+        console.log('Proposed Rate:', proposed_rate);
+        console.log('Message:', message);
+        console.log('='.repeat(50));
 
-            await connection.beginTransaction();
-
-            // 1. Verify job belongs to client and is still open
-            const [jobs] = await connection.execute(
-                `SELECT * FROM jobs WHERE id = ? AND client_id = ? AND status = 'posted'`,
-                [jobId, clientId]
-            );
-
-            if (jobs.length === 0) {
-                await connection.rollback();
-                connection.release();
-                return res.status(404).json({ 
-                    success: false, 
-                    message: 'Job not found or already assigned' 
-                });
-            }
-
-            const job = jobs[0];
-
-            // 2. Check client's active packages with credits
-            const [packages] = await connection.execute(
-                `SELECT * FROM client_hire_packages 
-                WHERE client_id = ? AND status = 'active' 
-                AND (valid_until IS NULL OR valid_until > NOW())
-                AND (unlimited = TRUE OR hires_remaining > 0)
-                ORDER BY 
-                    CASE WHEN unlimited = true THEN 0 ELSE 1 END,
-                    created_at ASC`,
-                [clientId]
-            );
-
-            console.log('Found packages:', packages.length);
-
-            if (packages.length === 0) {
-                await connection.rollback();
-                connection.release();
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'Insufficient hire credits. Please purchase a package.',
-                    needs_credits: true
-                });
-            }
-
-            // 3. Find a package to use
-            let usedPackage = null;
-            for (const pkg of packages) {
-                if (pkg.unlimited || pkg.hires_remaining > 0) {
-                    usedPackage = pkg;
-                    break;
-                }
-            }
-
-            if (!usedPackage) {
-                await connection.rollback();
-                connection.release();
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'No active packages with available credits',
-                    needs_credits: true
-                });
-            }
-
-            console.log('Using package:', usedPackage.id);
-
-            // 4. Update package credits
-            if (!usedPackage.unlimited) {
-                const newRemaining = usedPackage.hires_remaining - 1;
-                const newStatus = newRemaining === 0 ? 'used' : 'active';
-                
-                await connection.execute(
-                    `UPDATE client_hire_packages 
-                    SET hires_remaining = ?,
-                        status = ?
-                    WHERE id = ?`,
-                    [newRemaining, newStatus, usedPackage.id]
-                );
-                console.log(`Package updated: ${newRemaining} remaining, status: ${newStatus}`);
-            } else {
-                console.log('Unlimited package used - no deduction');
-            }
-
-            // 5. Update job status and hired_worker_id
-            await connection.execute(
-                `UPDATE jobs SET status = 'hired', hired_worker_id = ? WHERE id = ?`,
-                [worker_id, jobId]
-            );
-            console.log('Job status updated to hired');
-
-            // 6. Update the selected application to 'accepted'
-            await connection.execute(
-                `UPDATE job_applications SET status = 'accepted' 
-                WHERE job_id = ? AND worker_id = ?`,
-                [jobId, worker_id]
-            );
-            console.log('Application accepted');
-
-            // 7. Reject all other applications
-            const [rejectResult] = await connection.execute(
-                `UPDATE job_applications SET status = 'rejected' 
-                WHERE job_id = ? AND worker_id != ?`,
-                [jobId, worker_id]
-            );
-            console.log(`${rejectResult.affectedRows} other applications rejected`);
-
-            // 8. CREATE JOB_HIRES RECORD
-            const [hireResult] = await connection.execute(
-                `INSERT INTO job_hires 
-                (job_id, client_id, worker_id, package_id, hire_fee, status, created_at)
-                VALUES (?, ?, ?, ?, ?, 'hired', NOW())`,
-                [jobId, clientId, worker_id, usedPackage.id, agreed_rate]
-            );
-            console.log('✅ Job hire record created with ID:', hireResult.insertId);
-
-            // 9. Create notification for hired worker
-            await connection.execute(
-                `INSERT INTO notifications (user_id, type, title, message, created_at) 
-                VALUES (?, 'hire', '🎉 You got hired!', ?, NOW())`,
-                [worker_id, `You have been hired for job: ${job.title}. The client will contact you soon.`]
-            );
-            console.log('Notification sent to hired worker');
-
-            // 10. Create notifications for rejected applicants
-            const [rejectedApps] = await connection.execute(
-                `SELECT worker_id FROM job_applications 
-                WHERE job_id = ? AND worker_id != ?`,
-                [jobId, worker_id]
-            );
-
-            for (const app of rejectedApps) {
-                await connection.execute(
-                    `INSERT INTO notifications (user_id, type, title, message, created_at) 
-                    VALUES (?, 'rejection', '❌ Application Status Update', ?, NOW())`,
-                    [app.worker_id, `The job "${job.title}" has been assigned to another worker.`]
-                );
-            }
-            console.log(`Notifications sent to ${rejectedApps.length} rejected applicants`);
-
-            // 11. Get worker contact info
-            const [worker] = await connection.execute(
-                `SELECT name, phone, email FROM users WHERE id = ?`,
-                [worker_id]
-            );
-
-            await connection.commit();
+        // Validate user type
+        if (req.user.userType !== 'worker') {
             connection.release();
-
-            console.log('✅ Worker hired successfully');
-
-            res.json({
-                success: true,
-                message: 'Worker hired successfully',
-                data: {
-                    hire_id: hireResult.insertId,
-                    worker_name: worker[0].name,
-                    worker_phone: worker[0].phone,
-                    worker_email: worker[0].email,
-                    package_used: usedPackage.package_type
-                }
-            });
-
-        } catch (error) {
-            await connection.rollback();
-            connection.release();
-            console.error('❌ Hire error:', error);
-            res.status(500).json({ 
+            return res.status(403).json({ 
                 success: false, 
-                message: 'Failed to hire worker',
-                error: error.message 
+                message: 'Only workers can apply for jobs' 
             });
         }
-    });
+
+        // Validate required fields
+        if (!proposed_rate || proposed_rate <= 0) {
+            connection.release();
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Please enter a valid proposed rate' 
+            });
+        }
+
+        await connection.beginTransaction();
+
+        // Check if job exists and is posted
+        const [jobs] = await connection.execute(
+            'SELECT * FROM jobs WHERE id = ? AND status = "posted"',
+            [jobId]
+        );
+
+        if (jobs.length === 0) {
+            await connection.rollback();
+            connection.release();
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Job not available' 
+            });
+        }
+
+        const job = jobs[0];
+
+        // Validate proposed rate is within job budget
+        if (proposed_rate < job.budget_min || proposed_rate > job.budget_max) {
+            await connection.rollback();
+            connection.release();
+            return res.status(400).json({ 
+                success: false, 
+                message: `Proposed rate must be between R${job.budget_min} and R${job.budget_max}` 
+            });
+        }
+
+        // Check if worker has an active pass
+        const [passes] = await connection.execute(
+            `SELECT * FROM worker_application_passes 
+             WHERE worker_id = ? AND status = 'active' 
+             AND (end_date IS NULL OR end_date > NOW())
+             AND (unlimited = TRUE OR applications_remaining > 0)
+             ORDER BY end_date ASC LIMIT 1`,
+            [workerId]
+        );
+
+        if (passes.length === 0) {
+            await connection.rollback();
+            connection.release();
+            return res.status(400).json({ 
+                success: false, 
+                message: 'You need an active application pass to apply for jobs',
+                requires_pass: true
+            });
+        }
+
+        const pass = passes[0];
+
+        // Check if already applied
+        const [existing] = await connection.execute(
+            'SELECT id FROM job_applications WHERE job_id = ? AND worker_id = ?',
+            [jobId, workerId]
+        );
+
+        if (existing.length > 0) {
+            await connection.rollback();
+            connection.release();
+            return res.status(400).json({ 
+                success: false, 
+                message: 'You have already applied for this job' 
+            });
+        }
+
+        // Deduct one application if not unlimited
+        if (!pass.unlimited) {
+            await connection.execute(
+                'UPDATE worker_application_passes SET applications_remaining = applications_remaining - 1 WHERE id = ?',
+                [pass.id]
+            );
+        }
+
+        // Create application
+        const [result] = await connection.execute(
+            `INSERT INTO job_applications 
+             (job_id, worker_id, pass_id, proposed_rate, message, status)
+             VALUES (?, ?, ?, ?, ?, 'pending')`,
+            [jobId, workerId, pass.id, proposed_rate, message || null]
+        );
+
+        await connection.commit();
+        connection.release();
+
+        console.log('✅ Application submitted successfully. ID:', result.insertId);
+
+        res.json({
+            success: true,
+            message: 'Application submitted successfully',
+            data: { 
+                id: result.insertId,
+                applications_remaining: pass.unlimited ? 'Unlimited' : (pass.applications_remaining - 1)
+            }
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        connection.release();
+        console.error('❌ Apply error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to submit application',
+            error: error.message 
+        });
+    }
+});
+
+// ========== FIXED HIRE WORKER ENDPOINT ==========
+app.post('/api/jobs/:jobId/hire', authenticateToken, async (req, res) => {
+    const connection = await pool.getConnection();
+    
+    try {
+        const { jobId } = req.params;
+        const clientId = req.user.userId;
+        const { worker_id, agreed_rate } = req.body;
+
+        console.log('='.repeat(50));
+        console.log('🤝 HIRE WORKER REQUEST');
+        console.log('Job ID:', jobId);
+        console.log('Client ID:', clientId);
+        console.log('Worker ID:', worker_id);
+        console.log('Agreed Rate:', agreed_rate);
+        console.log('='.repeat(50));
+
+        await connection.beginTransaction();
+
+        // 1. Verify job belongs to client and is still open
+        const [jobs] = await connection.execute(
+            `SELECT * FROM jobs WHERE id = ? AND client_id = ? AND status = 'posted'`,
+            [jobId, clientId]
+        );
+
+        if (jobs.length === 0) {
+            await connection.rollback();
+            connection.release();
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Job not found or already assigned' 
+            });
+        }
+
+        const job = jobs[0];
+
+        // 2. Check client's active packages with credits
+        const [packages] = await connection.execute(
+            `SELECT * FROM client_hire_packages 
+            WHERE client_id = ? AND status = 'active' 
+            AND (valid_until IS NULL OR valid_until > NOW())
+            AND (unlimited = TRUE OR hires_remaining > 0)
+            ORDER BY 
+                CASE WHEN unlimited = true THEN 0 ELSE 1 END,
+                created_at ASC`,
+            [clientId]
+        );
+
+        console.log('Found packages:', packages.length);
+
+        if (packages.length === 0) {
+            await connection.rollback();
+            connection.release();
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Insufficient hire credits. Please purchase a package.',
+                needs_credits: true
+            });
+        }
+
+        // 3. Find a package to use
+        let usedPackage = null;
+        for (const pkg of packages) {
+            if (pkg.unlimited || pkg.hires_remaining > 0) {
+                usedPackage = pkg;
+                break;
+            }
+        }
+
+        if (!usedPackage) {
+            await connection.rollback();
+            connection.release();
+            return res.status(400).json({ 
+                success: false, 
+                message: 'No active packages with available credits',
+                needs_credits: true
+            });
+        }
+
+        console.log('Using package:', usedPackage.id);
+
+        // 4. Update package credits
+        if (!usedPackage.unlimited) {
+            const newRemaining = usedPackage.hires_remaining - 1;
+            const newStatus = newRemaining === 0 ? 'used' : 'active';
+            
+            await connection.execute(
+                `UPDATE client_hire_packages 
+                SET hires_remaining = ?,
+                    status = ?
+                WHERE id = ?`,
+                [newRemaining, newStatus, usedPackage.id]
+            );
+            console.log(`Package updated: ${newRemaining} remaining, status: ${newStatus}`);
+        } else {
+            console.log('Unlimited package used - no deduction');
+        }
+
+        // 5. Update job status and hired_worker_id
+        await connection.execute(
+            `UPDATE jobs SET status = 'hired', hired_worker_id = ? WHERE id = ?`,
+            [worker_id, jobId]
+        );
+        console.log('Job status updated to hired');
+
+        // 6. Update the selected application to 'accepted'
+        await connection.execute(
+            `UPDATE job_applications SET status = 'accepted' 
+            WHERE job_id = ? AND worker_id = ?`,
+            [jobId, worker_id]
+        );
+        console.log('Application accepted');
+
+        // 7. Reject all other applications
+        const [rejectResult] = await connection.execute(
+            `UPDATE job_applications SET status = 'rejected' 
+            WHERE job_id = ? AND worker_id != ?`,
+            [jobId, worker_id]
+        );
+        console.log(`${rejectResult.affectedRows} other applications rejected`);
+
+        // 8. CREATE JOB_HIRES RECORD
+        const [hireResult] = await connection.execute(
+            `INSERT INTO job_hires 
+            (job_id, client_id, worker_id, package_id, hire_fee, status, created_at)
+            VALUES (?, ?, ?, ?, ?, 'hired', NOW())`,
+            [jobId, clientId, worker_id, usedPackage.id, agreed_rate]
+        );
+        console.log('✅ Job hire record created with ID:', hireResult.insertId);
+
+        // 9. Reveal worker contact info for this client
+        console.log('Revealing worker contact info...');
+        await connection.execute(
+            `UPDATE worker_profiles 
+             SET contact_hidden = 0, 
+                 reveal_count = reveal_count + 1 
+             WHERE user_id = ?`,
+            [worker_id]
+        );
+        console.log('✅ Worker contact info revealed');
+
+        // 10. Get worker contact info
+        const [worker] = await connection.execute(
+            `SELECT name, phone, email FROM users WHERE id = ?`,
+            [worker_id]
+        );
+
+        await connection.commit();
+        connection.release();
+
+        console.log('✅ Worker hired successfully');
+
+        res.json({
+            success: true,
+            message: 'Worker hired successfully',
+            data: {
+                hire_id: hireResult.insertId,
+                worker_name: worker[0].name,
+                worker_phone: worker[0].phone,
+                worker_email: worker[0].email,
+                package_used: usedPackage.package_type
+            }
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        connection.release();
+        console.error('❌ Hire error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to hire worker',
+            error: error.message 
+        });
+    }
+});
 
 // ========== WORKER ROUTES ==========
 
@@ -862,7 +959,6 @@ app.get('/api/worker/applications', authenticateToken, async (req, res) => {
 });
 
 // Get worker profile
-
 app.get('/api/workers/:id', async (req, res) => {
     try {
         const workerId = req.params.id;
@@ -1092,11 +1188,7 @@ app.put('/api/worker/profile', authenticateToken, async (req, res) => {
 // Upload worker profile picture
 const workerStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = 'uploads/workers';
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
+        cb(null, 'uploads/workers');
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -1482,149 +1574,6 @@ app.delete('/api/worker/account', authenticateToken, async (req, res) => {
     }
 });
 
-// ========== JOB APPLICATION ENDPOINT ==========
-app.post('/api/jobs/:id/apply', authenticateToken, async (req, res) => {
-    const connection = await pool.getConnection();
-    
-    try {
-        const jobId = req.params.id;
-        const workerId = req.user.userId;
-        const { proposed_rate, message } = req.body;
-
-        console.log('='.repeat(50));
-        console.log('📝 JOB APPLICATION REQUEST');
-        console.log('Job ID:', jobId);
-        console.log('Worker ID:', workerId);
-        console.log('Proposed Rate:', proposed_rate);
-        console.log('Message:', message);
-        console.log('='.repeat(50));
-
-        // Validate user type
-        if (req.user.userType !== 'worker') {
-            connection.release();
-            return res.status(403).json({ 
-                success: false, 
-                message: 'Only workers can apply for jobs' 
-            });
-        }
-
-        // Validate required fields
-        if (!proposed_rate || proposed_rate <= 0) {
-            connection.release();
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Please enter a valid proposed rate' 
-            });
-        }
-
-        await connection.beginTransaction();
-
-        // Check if job exists and is posted
-        const [jobs] = await connection.execute(
-            'SELECT * FROM jobs WHERE id = ? AND status = "posted"',
-            [jobId]
-        );
-
-        if (jobs.length === 0) {
-            await connection.rollback();
-            connection.release();
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Job not available' 
-            });
-        }
-
-        const job = jobs[0];
-
-        // Validate proposed rate is within job budget
-        if (proposed_rate < job.budget_min || proposed_rate > job.budget_max) {
-            await connection.rollback();
-            connection.release();
-            return res.status(400).json({ 
-                success: false, 
-                message: `Proposed rate must be between R${job.budget_min} and R${job.budget_max}` 
-            });
-        }
-
-        // Check if worker has an active pass
-        const [passes] = await connection.execute(
-            `SELECT * FROM worker_application_passes 
-             WHERE worker_id = ? AND status = 'active' 
-             AND (end_date IS NULL OR end_date > NOW())
-             AND (unlimited = TRUE OR applications_remaining > 0)
-             ORDER BY end_date ASC LIMIT 1`,
-            [workerId]
-        );
-
-        if (passes.length === 0) {
-            await connection.rollback();
-            connection.release();
-            return res.status(400).json({ 
-                success: false, 
-                message: 'You need an active application pass to apply for jobs',
-                requires_pass: true
-            });
-        }
-
-        const pass = passes[0];
-
-        // Check if already applied
-        const [existing] = await connection.execute(
-            'SELECT id FROM job_applications WHERE job_id = ? AND worker_id = ?',
-            [jobId, workerId]
-        );
-
-        if (existing.length > 0) {
-            await connection.rollback();
-            connection.release();
-            return res.status(400).json({ 
-                success: false, 
-                message: 'You have already applied for this job' 
-            });
-        }
-
-        // Deduct one application if not unlimited
-        if (!pass.unlimited) {
-            await connection.execute(
-                'UPDATE worker_application_passes SET applications_remaining = applications_remaining - 1 WHERE id = ?',
-                [pass.id]
-            );
-        }
-
-        // Create application
-        const [result] = await connection.execute(
-            `INSERT INTO job_applications 
-             (job_id, worker_id, pass_id, proposed_rate, message, status)
-             VALUES (?, ?, ?, ?, ?, 'pending')`,
-            [jobId, workerId, pass.id, proposed_rate, message || null]
-        );
-
-        await connection.commit();
-        connection.release();
-
-        console.log('✅ Application submitted successfully. ID:', result.insertId);
-
-        res.json({
-            success: true,
-            message: 'Application submitted successfully',
-            data: { 
-                id: result.insertId,
-                applications_remaining: pass.unlimited ? 'Unlimited' : (pass.applications_remaining - 1)
-            }
-        });
-
-    } catch (error) {
-        await connection.rollback();
-        connection.release();
-        console.error('❌ Apply error:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Failed to submit application',
-            error: error.message 
-        });
-    }
-});
-
 // ========== CHECK HIRE STATUS ENDPOINT ==========
 app.get('/api/jobs/:jobId/hire-status', authenticateToken, async (req, res) => {
     try {
@@ -1658,24 +1607,6 @@ app.get('/api/jobs/:jobId/hire-status', authenticateToken, async (req, res) => {
             message: 'Failed to check hire status' 
         });
     }
-
-    // 11. Reveal worker contact info for this client
-console.log('Revealing worker contact info...');
-await connection.execute(
-    `UPDATE worker_profiles 
-     SET contact_hidden = 0, 
-         reveal_count = reveal_count + 1 
-     WHERE user_id = ?`,
-    [worker_id]
-);
-console.log('✅ Worker contact info revealed');
-
-// 12. Get worker contact info (now it should be visible)
-const [worker] = await connection.execute(
-    `SELECT name, phone, email FROM users WHERE id = ?`,
-    [worker_id]
-);
-
 });
 
 // ========== COMPLETE JOB ENDPOINT ==========
@@ -1937,8 +1868,8 @@ app.get('/api/client/jobs', authenticateToken, async (req, res) => {
             } : null
         }));
 
-         jobs.forEach(job => {
-        console.log(`Job ${job.id}: status=${job.status}, worker_id=${job.worker_id || 'none'}`);
+        jobs.forEach(job => {
+            console.log(`Job ${job.id}: status=${job.status}, worker_id=${job.worker_id || 'none'}`);
         });
 
         res.json({ success: true, data: formattedJobs });
@@ -2036,11 +1967,7 @@ app.put('/api/client/profile', authenticateToken, async (req, res) => {
 // Upload client profile picture
 const clientStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = 'uploads/clients';
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
+        cb(null, 'uploads/clients');
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -3406,13 +3333,13 @@ app.get('/', (req, res) => {
     });
 });
 
-/*const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log('\n=================================');
     console.log('✅ KasiConnect Complete Backend v3.0');
     console.log('=================================');
     console.log(`📡 Server: http://localhost:${PORT}`);
-    console.log(`🗄️  Database: MySQL Connected`);
+    console.log(`🗄️  Database: TiDB Cloud Connected`);
     console.log(`📊 Package System Active`);
     console.log('=================================\n');
-});*/
+});
