@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -21,17 +22,75 @@ const HomePage = () => {
     });
     const [activeTestimonial, setActiveTestimonial] = useState(0);
 
-    // Define categories with real township flavor
+    // Define categories with Font Awesome icons
     const categories = [
-        { name: 'Plumbing', icon: '🔧', color: '#FF6B35', lightColor: '#FFF1E6', jobs: '24', description: 'Leaky pipes? Fixed sharp!' },
-        { name: 'Building', icon: '🏗️', color: '#F59E0B', lightColor: '#FEF3C7', jobs: '18', description: 'Extensions, renovations' },
-        { name: 'Gardening', icon: '🌿', color: '#10B981', lightColor: '#D1FAE5', jobs: '32', description: 'Lawn, landscaping' },
-        { name: 'Painting', icon: '🎨', color: '#8B5CF6', lightColor: '#EDE9FE', jobs: '15', description: 'Inside & outside' },
-        { name: 'Cleaning', icon: '🧹', color: '#EC4899', lightColor: '#FCE7F3', jobs: '27', description: 'Deep cleaning' },
-        { name: 'Electrical', icon: '⚡', color: '#F97316', lightColor: '#FFEDD5', jobs: '12', description: 'Wiring, installations' },
-        { name: 'Moving', icon: '📦', color: '#06B6D4', lightColor: '#CFFAFE', jobs: '9', description: 'Local moves' },
-        { name: 'Handyman', icon: '🛠️', color: '#6B7280', lightColor: '#F3F4F6', jobs: '41', description: 'All small jobs' }
+        { name: 'Plumbing', icon: 'fa-solid fa-wrench', color: '#FF6B35', lightColor: '#FFF1E6', jobs: '24', description: 'Leaky pipes? Fixed sharp!' },
+        { name: 'Building', icon: 'fa-solid fa-hard-hat', color: '#F59E0B', lightColor: '#FEF3C7', jobs: '18', description: 'Extensions, renovations' },
+        { name: 'Gardening', icon: 'fa-solid fa-seedling', color: '#10B981', lightColor: '#D1FAE5', jobs: '32', description: 'Lawn, landscaping' },
+        { name: 'Painting', icon: 'fa-solid fa-paint-roller', color: '#8B5CF6', lightColor: '#EDE9FE', jobs: '15', description: 'Inside & outside' },
+        { name: 'Cleaning', icon: 'fa-solid fa-broom', color: '#EC4899', lightColor: '#FCE7F3', jobs: '27', description: 'Deep cleaning' },
+        { name: 'Electrical', icon: 'fa-solid fa-bolt', color: '#F97316', lightColor: '#FFEDD5', jobs: '12', description: 'Wiring, installations' },
+        { name: 'Moving', icon: 'fa-solid fa-truck', color: '#06B6D4', lightColor: '#CFFAFE', jobs: '9', description: 'Local moves' },
+        { name: 'Handyman', icon: 'fa-solid fa-toolbox', color: '#6B7280', lightColor: '#F3F4F6', jobs: '41', description: 'All small jobs' }
     ];
+
+    // Features with Font Awesome icons
+    const features = [
+        {
+            icon: 'fa-solid fa-shield-check',
+            title: 'Trusted Hustlers',
+            description: 'All our hustlers are verified locals from the hood',
+            color: '#10B981'
+        },
+        {
+            icon: 'fa-solid fa-bolt',
+            title: 'Quick Connect',
+            description: 'Get connected with workers in minutes, sharp sharp!',
+            color: '#F59E0B'
+        },
+        {
+            icon: 'fa-solid fa-star',
+            title: 'Quality Work',
+            description: 'Only the best hustlers, guaranteed satisfaction',
+            color: '#8B5CF6'
+        }
+    ];
+
+    // How it works steps with Font Awesome icons
+    const steps = [
+        {
+            number: '1',
+            icon: 'fa-regular fa-pen-to-square',
+            title: 'Spread the word',
+            description: 'Post your job in minutes — tell us what you need, where, and your budget. No charge!',
+            example: '"Need a plumber in Soweto • R500"',
+            color: '#FF6B35'
+        },
+        {
+            number: '2',
+            icon: 'fa-regular fa-message',
+            title: 'Get quotes',
+            description: 'Local hustlers will send you offers with their prices. Check their ratings and pick your person.',
+            example: '"Bra Bheki • 4.9⭐ • R450"',
+            color: '#F59E0B'
+        },
+        {
+            number: '3',
+            icon: 'fa-solid fa-handshake',
+            title: 'Job done!',
+            description: 'Hire, get the work done, and pay securely. Leave a review to help the next person.',
+            example: '"Geyser fixed in 2 hours!"',
+            color: '#10B981'
+        }
+    ];
+
+    // Stats with Font Awesome icons
+    const statIcons = {
+        workers: 'fa-solid fa-users',
+        jobsDone: 'fa-solid fa-circle-check',
+        revenue: 'fa-solid fa-sack-dollar',
+        townships: 'fa-solid fa-location-dot'
+    };
 
     // Testimonials with real township voices
     const testimonials = [
@@ -136,11 +195,11 @@ const HomePage = () => {
                         </p>
                         <div className="hero-buttons">
                             <Link to="/jobs/post" className="btn-primary btn-large">
-                                <span className="btn-icon">📋</span>
+                                <i className="fas fa-pen-to-square btn-icon"></i>
                                 Post a Job — It's Free!
                             </Link>
                             <Link to="/jobs" className="btn-secondary btn-large">
-                                <span className="btn-icon">🔍</span>
+                                <i className="fas fa-magnifying-glass btn-icon"></i>
                                 Find Work
                             </Link>
                         </div>
@@ -184,16 +243,36 @@ const HomePage = () => {
                                     e.target.src = 'https://images.unsplash.com/photo-1593113598332-cd288d649433?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80';
                                 }}
                             />
-
                         </div>
                     </div>
                 </div>
                 
                 {/* Floating Elements */}
-                <div className="floating-element element-1">🔧</div>
-                <div className="floating-element element-2">🪴</div>
-                <div className="floating-element element-3">🎨</div>
-                <div className="floating-element element-4">⚡</div>
+                <div className="floating-element element-1"><i className="fas fa-wrench"></i></div>
+                <div className="floating-element element-2"><i className="fas fa-seedling"></i></div>
+                <div className="floating-element element-3"><i className="fas fa-paint-roller"></i></div>
+                <div className="floating-element element-4"><i className="fas fa-bolt"></i></div>
+            </section>
+
+            {/* Features Section - NEW */}
+            <section className="features-section">
+                <div className="container">
+                    <div className="section-header center">
+                        <h2 className="section-title">Why Choose <span className="highlight">KasiConnect</span></h2>
+                        <p className="section-subtitle">We make it easy to get things done in your community</p>
+                    </div>
+                    <div className="features-grid">
+                        {features.map((feature, index) => (
+                            <div key={index} className="feature-card">
+                                <div className="feature-icon-wrapper" style={{ background: `${feature.color}15` }}>
+                                    <i className={`${feature.icon} feature-icon`} style={{ color: feature.color }}></i>
+                                </div>
+                                <h3 className="feature-title">{feature.title}</h3>
+                                <p className="feature-description">{feature.description}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </section>
 
             {/* Trust Badges */}
@@ -201,39 +280,39 @@ const HomePage = () => {
                 <div className="container">
                     <div className="badges-grid">
                         <div className="trust-badge">
-                            <span className="badge-icon">✓</span>
+                            <i className="fas fa-check-circle badge-icon" style={{ color: '#10B981' }}></i>
                             <span>All workers vetted</span>
                         </div>
                         <div className="trust-badge">
-                            <span className="badge-icon">💰</span>
+                            <i className="fas fa-shield-heart badge-icon" style={{ color: '#FF6B35' }}></i>
                             <span>Secure payments</span>
                         </div>
                         <div className="trust-badge">
-                            <span className="badge-icon">⚡</span>
+                            <i className="fas fa-bolt badge-icon" style={{ color: '#F59E0B' }}></i>
                             <span>Same-day service</span>
                         </div>
                         <div className="trust-badge">
-                            <span className="badge-icon">⭐</span>
+                            <i className="fas fa-star badge-icon" style={{ color: '#FBBF24' }}></i>
                             <span>5-star ratings</span>
                         </div>
                         <div className="trust-badge">
-                            <span className="badge-icon">📍</span>
+                            <i className="fas fa-location-dot badge-icon" style={{ color: '#EF4444' }}></i>
                             <span>All townships</span>
                         </div>
                         <div className="trust-badge">
-                            <span className="badge-icon">📱</span>
+                            <i className="fas fa-mobile-screen-button badge-icon" style={{ color: '#8B5CF6' }}></i>
                             <span>USSD supported</span>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Categories Section - Vibrant Grid */}
+            {/* Categories Section */}
             <section className="categories-section">
                 <div className="container">
                     <div className="section-header">
                         <h2 className="section-title">
-                            <span className="title-icon">🔍</span>
+                            <i className="fas fa-magnifying-glass title-icon"></i>
                             What needs to be done?
                         </h2>
                         <p className="section-subtitle">
@@ -250,7 +329,7 @@ const HomePage = () => {
                                 style={{ backgroundColor: category.lightColor }}
                             >
                                 <div className="category-icon-wrapper" style={{ backgroundColor: category.color }}>
-                                    <span className="category-icon">{category.icon}</span>
+                                    <i className={`${category.icon} category-icon`}></i>
                                 </div>
                                 <div className="category-info">
                                     <h3 className="category-name">{category.name}</h3>
@@ -259,20 +338,20 @@ const HomePage = () => {
                                         {category.jobs} jobs now
                                     </span>
                                 </div>
-                                <div className="category-arrow">→</div>
+                                <div className="category-arrow"><i className="fas fa-arrow-right"></i></div>
                             </Link>
                         ))}
                     </div>
                     
                     <div className="categories-cta">
                         <Link to="/jobs" className="btn-outline">
-                            View All Categories <span>→</span>
+                            View All Categories <i className="fas fa-arrow-right"></i>
                         </Link>
                     </div>
                 </div>
             </section>
 
-            {/* How It Works - Township Style */}
+            {/* How It Works Section */}
             <section className="how-it-works-section">
                 <div className="container">
                     <div className="section-header center">
@@ -281,29 +360,17 @@ const HomePage = () => {
                     </div>
                     
                     <div className="steps-grid-modern">
-                        <div className="step-card-modern">
-                            <div className="step-number" style={{ background: '#FF6B35' }}>1</div>
-                            <div className="step-icon">📢</div>
-                            <h3>Spread the word</h3>
-                            <p>Post your job in minutes — tell us what you need, where, and your budget. No charge!</p>
-                            <div className="step-example">"Need a plumber in Soweto • R500"</div>
-                        </div>
-                        
-                        <div className="step-card-modern">
-                            <div className="step-number" style={{ background: '#F59E0B' }}>2</div>
-                            <div className="step-icon">👥</div>
-                            <h3>Get quotes</h3>
-                            <p>Local hustlers will send you offers with their prices. Check their ratings and pick your person.</p>
-                            <div className="step-example">"Bra Bheki • 4.9⭐ • R450"</div>
-                        </div>
-                        
-                        <div className="step-card-modern">
-                            <div className="step-number" style={{ background: '#10B981' }}>3</div>
-                            <div className="step-icon">✅</div>
-                            <h3>Job done!</h3>
-                            <p>Hire, get the work done, and pay securely. Leave a review to help the next person.</p>
-                            <div className="step-example">"Geyser fixed in 2 hours!"</div>
-                        </div>
+                        {steps.map((step, index) => (
+                            <div key={index} className="step-card-modern">
+                                <div className="step-number" style={{ background: step.color }}>{step.number}</div>
+                                <div className="step-icon-wrapper">
+                                    <i className={`${step.icon} step-icon`} style={{ color: step.color }}></i>
+                                </div>
+                                <h3>{step.title}</h3>
+                                <p>{step.description}</p>
+                                <div className="step-example">"{step.example}"</div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
@@ -320,7 +387,7 @@ const HomePage = () => {
                             <p className="section-subtitle">Fresh opportunities posted just now</p>
                         </div>
                         <Link to="/jobs" className="btn-outline">
-                            View All <span>→</span>
+                            View All <i className="fas fa-arrow-right"></i>
                         </Link>
                     </div>
                     
@@ -331,7 +398,7 @@ const HomePage = () => {
                         </div>
                     ) : jobs.length === 0 ? (
                         <div className="empty-state">
-                            <div className="empty-icon">📭</div>
+                            <i className="fas fa-inbox empty-icon"></i>
                             <h3>No jobs yet</h3>
                             <p>Be the first to post a job in your area!</p>
                             <Link to="/jobs/post" className="btn-primary">
@@ -357,19 +424,20 @@ const HomePage = () => {
                                     <p className="job-description">{truncateText(job.description)}</p>
                                     <div className="job-details-row">
                                         <div className="job-location">
-                                            <span>📍</span>
+                                            <i className="fas fa-location-dot"></i>
                                             <span>{job.township || 'Kasi'}</span>
                                         </div>
                                         <div className="job-budget">
-                                            <span>💰</span>
+                                            <i className="fas fa-coin"></i>
                                             <span>R{job.budget_min} - R{job.budget_max}</span>
                                         </div>
                                     </div>
                                     <div className="job-applications">
                                         <span className="applications-count">
-                                            👥 {job.application_count || 0} applicants
+                                            <i className="fas fa-users" style={{ marginRight: '5px' }}></i>
+                                            {job.application_count || 0} applicants
                                         </span>
-                                        <span className="job-apply-link">Apply →</span>
+                                        <span className="job-apply-link">Apply <i className="fas fa-arrow-right"></i></span>
                                     </div>
                                 </Link>
                             ))}
@@ -394,7 +462,7 @@ const HomePage = () => {
                                 style={{ display: activeTestimonial === index ? 'block' : 'none' }}
                             >
                                 <div className="testimonial-card-modern">
-                                    <div className="testimonial-quote">"</div>
+                                    <i className="fas fa-quote-right testimonial-quote"></i>
                                     <p className="testimonial-text">{testimonial.text}</p>
                                     <div className="testimonial-rating">
                                         {'⭐'.repeat(testimonial.rating)}
@@ -429,28 +497,28 @@ const HomePage = () => {
                 <div className="container">
                     <div className="stats-counter-grid">
                         <div className="counter-card">
-                            <div className="counter-icon">👨🏾‍🔧</div>
+                            <i className={statIcons.workers} style={{ fontSize: '48px', color: '#FF6B35', marginBottom: '16px' }}></i>
                             <div className="counter-number">
                                 {loading.stats ? '...' : formatNumber(stats.workers)}
                             </div>
                             <div className="counter-label">Active Hustlers</div>
                         </div>
                         <div className="counter-card">
-                            <div className="counter-icon">✅</div>
+                            <i className={statIcons.jobsDone} style={{ fontSize: '48px', color: '#10B981', marginBottom: '16px' }}></i>
                             <div className="counter-number">
                                 {loading.stats ? '...' : formatNumber(stats.completed_jobs || stats.total_hires)}
                             </div>
                             <div className="counter-label">Jobs Completed</div>
                         </div>
                         <div className="counter-card">
-                            <div className="counter-icon">💰</div>
+                            <i className={statIcons.revenue} style={{ fontSize: '48px', color: '#F59E0B', marginBottom: '16px' }}></i>
                             <div className="counter-number">
                                 R{loading.stats ? '...' : formatNumber(stats.total_revenue)}
                             </div>
                             <div className="counter-label">Paid to Hustlers</div>
                         </div>
                         <div className="counter-card">
-                            <div className="counter-icon">🏘️</div>
+                            <i className={statIcons.townships} style={{ fontSize: '48px', color: '#8B5CF6', marginBottom: '16px' }}></i>
                             <div className="counter-number">
                                 {loading.stats ? '...' : '15+'}
                             </div>
@@ -460,11 +528,13 @@ const HomePage = () => {
                 </div>
             </section>
 
-            {/* USSD Section - Township Special */}
+            {/* USSD Section */}
             <section className="ussd-feature-section">
                 <div className="container">
                     <div className="ussd-card">
-                        <div className="ussd-icon">📱</div>
+                        <div className="ussd-icon">
+                            <i className="fas fa-mobile-screen-button" style={{ fontSize: '60px', color: '#FF6B35' }}></i>
+                        </div>
                         <div className="ussd-content">
                             <h2>No smartphone? <span className="highlight">No stress!</span></h2>
                             <p>Use any phone — even a mzansi phone — to find work or post jobs</p>
@@ -474,8 +544,8 @@ const HomePage = () => {
                                 <span className="ussd-free">FREE</span>
                             </div>
                             <div className="ussd-features">
-                                <span>✓ No data needed</span>
-                                <span>✓ Works on all networks</span>
+                                <span><i className="fas fa-wifi" style={{ marginRight: '5px' }}></i> No data needed</span>
+                                <span><i className="fas fa-globe" style={{ marginRight: '5px' }}></i> Works on all networks</span>
                             </div>
                         </div>
                         <div className="ussd-phone">
@@ -502,16 +572,16 @@ const HomePage = () => {
                         <p className="cta-subtitle">Join thousands of hustlers and clients in your kasi</p>
                         <div className="cta-buttons">
                             <Link to="/register" className="btn-cta-primary">
-                                <span className="btn-icon">🚀</span>
+                                <i className="fas fa-rocket btn-icon"></i>
                                 Start Hustling
                             </Link>
                             <Link to="/jobs/post" className="btn-cta-secondary">
-                                <span className="btn-icon">📋</span>
+                                <i className="fas fa-pen-to-square btn-icon"></i>
                                 Post a Job
                             </Link>
                         </div>
                         <div className="cta-footer">
-                            <span>⚡ Free to join • No hidden fees • 100% mzansi</span>
+                            <i className="fas fa-bolt"></i> Free to join • No hidden fees • 100% mzansi
                         </div>
                     </div>
                 </div>

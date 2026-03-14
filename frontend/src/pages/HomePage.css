@@ -1105,3 +1105,134 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* Add to frontend/src/pages/HomePage.css */
+
+/* Features Section */
+.features-section {
+    padding: 80px 0;
+    background: white;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.feature-card {
+    text-align: center;
+    padding: 40px 30px;
+    background: var(--gray-50);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    border: 1px solid var(--gray-200);
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border-color: var(--primary);
+}
+
+.feature-icon-wrapper {
+    width: 100px;
+    height: 100px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+}
+
+.feature-icon {
+    font-size: 48px;
+}
+
+.feature-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 16px;
+}
+
+.feature-description {
+    color: var(--gray-600);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Title Icon */
+.title-icon {
+    color: var(--primary);
+    margin-right: 10px;
+    font-size: 32px;
+}
+
+/* Step Icons */
+.step-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.step-card-modern:hover .step-icon-wrapper {
+    transform: scale(1.1);
+    border-color: currentColor;
+}
+
+.step-icon {
+    font-size: 36px;
+}
+
+/* Category Icons */
+.category-icon-wrapper i {
+    font-size: 30px;
+    color: white;
+}
+
+.category-arrow i {
+    font-size: 20px;
+}
+
+/* Trust Badge Icons */
+.trust-badge .badge-icon {
+    font-size: 20px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Job Card Icons */
+.job-location i,
+.job-budget i {
+    font-size: 16px;
+    margin-right: 5px;
+    color: var(--primary);
+}
+
+.applications-count i {
+    color: var(--primary);
+}
+
+/* Responsive for features grid */
+@media (max-width: 768px) {
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .feature-card {
+        padding: 30px 20px;
+    }
+}
