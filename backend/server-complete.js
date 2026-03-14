@@ -2,6 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const mysql = require('mysql2/promise');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
@@ -31,12 +32,29 @@ app.use(cors({
         if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
-            console.log('❌ Blocked CORS request from:', origin);
-            callback(new Error('CORS not allowed from this origin'));
+            console.log('❌ Blocked request from origin:', origin);
+            callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+app.get('/api/test-cors', (req, res) => {
+    res.json({ 
+        success: true, 
+        message: 'CORS is working!',
+        origin: req.headers.origin,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Handle preflight requests
+app.options('*', cors()); // This is important!
+
+app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
