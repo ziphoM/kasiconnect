@@ -103,10 +103,21 @@ const Navbar = () => {
             <nav className="navbar">
                 <div className="nav-container">
                     {/* Logo */}
-                    <Link to="/" className="logo" onClick={() => setDropdownOpen(false)}>
-                        <span className="logo-icon">🏠</span>
-                        <span className="logo-text">Ekasilody</span>
-                    </Link>
+                <Link to="/" className="navbar-logo">
+                    <img 
+                        src="/images/logo-navbar-large.png" 
+                        alt="KasiConnect" 
+                        className="logo-image"
+                        onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.style.display = 'none';
+                        // Show text fallback
+                        e.target.parentElement.innerHTML += '<span class="logo-text">Ekasilody</span>';
+                    }}
+                    />
+                    {/* Optional: Keep text as fallback or remove completely */}
+                    {/* <span className="logo-text">KasiConnect</span> */}
+                </Link>
 
                     {/* Desktop Navigation Links */}
                     <div className="nav-links">

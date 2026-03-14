@@ -10,7 +10,11 @@ const Footer = () => {
         <footer className="footer">
             <div className="footer-container">
                 <div className="footer-section">
-                    <h3>KasiConnect</h3>
+                        <img 
+                            src="/images/logo-loading.png" 
+                            alt="KasiConnect" 
+                            className="footer-logo"
+                        />
                     <p>Connecting township hustlers with local opportunities. Find work or hire trusted workers in your community.</p>
                     
                     {/* Social Media Icons */}
@@ -79,7 +83,7 @@ const Footer = () => {
 
                 <div className="footer-section">
                     <h4>Contact</h4>
-                    <ul className="contact-info">
+                    <ul>
                         <li>
                             <i className="fas fa-phone"></i>
                             <span>Call: 0800 123 456</span>

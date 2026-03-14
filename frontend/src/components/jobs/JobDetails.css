@@ -745,7 +745,7 @@
 }
 
 .rate-badge {
-    display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 10px;
     background: #FFF1E6;
@@ -1540,7 +1540,7 @@
     border: 2px solid #A7F3D0;
     border-radius: 40px;
     padding: 12px 20px;
-    display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 10px;
     margin: 15px 0;

@@ -490,7 +490,7 @@
     border-radius: 30px;
     font-size: 13px;
     font-weight: 600;
-    display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 5px;
 }
@@ -515,7 +515,7 @@
 }
 
 .detail-highlight {
-    display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 10px;
     background: #FFF1E6;
@@ -561,7 +561,7 @@
     font-weight: 600;
     font-size: 14px;
     transition: all 0.2s;
-    display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 5px;
 }

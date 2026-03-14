@@ -37,22 +37,22 @@ const HomePage = () => {
     // Features with Font Awesome icons
     const features = [
         {
-            icon: 'fa-solid fa-shield-check',
+            icon: 'fa-solid fa-user-shield',
             title: 'Trusted Hustlers',
             description: 'All our hustlers are verified locals from the hood',
-            color: '#10B981'
+            color: '#282fff'
         },
         {
             icon: 'fa-solid fa-bolt',
             title: 'Quick Connect',
-            description: 'Get connected with workers in minutes, sharp sharp!',
+            description: 'Get connected with workers in minutes',
             color: '#F59E0B'
         },
         {
-            icon: 'fa-solid fa-star',
+            icon: 'fa-solid fa-thumbs-up',
             title: 'Quality Work',
             description: 'Only the best hustlers, guaranteed satisfaction',
-            color: '#8B5CF6'
+            color: '#fa2b2b'
         }
     ];
 
