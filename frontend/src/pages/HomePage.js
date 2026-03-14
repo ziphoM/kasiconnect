@@ -132,7 +132,7 @@ const HomePage = () => {
                             Find <span className="highlight">hustlers</span> for any piece job in your <span className="highlight">kasi</span>
                         </h1>
                         <p className="hero-subtitle">
-                            From plumbing to painting, gardening to moving — connect with trusted locals who deliver sharp sharp!
+                            From handyman to housekeeping, plumbing to ElectriFix — connect with trusted locals who deliver sharp 4 sho!
                         </p>
                         <div className="hero-buttons">
                             <Link to="/jobs/post" className="btn-primary btn-large">
@@ -476,7 +476,6 @@ const HomePage = () => {
                             <div className="ussd-features">
                                 <span>✓ No data needed</span>
                                 <span>✓ Works on all networks</span>
-                                <span>✓ In isiZulu, Sesotho & English</span>
                             </div>
                         </div>
                         <div className="ussd-phone">
