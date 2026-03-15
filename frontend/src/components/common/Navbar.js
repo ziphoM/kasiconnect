@@ -277,8 +277,11 @@ const Navbar = () => {
             <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
                 <div className="mobile-menu-header">
                     <Link to="/" className="logo" onClick={() => setMobileMenuOpen(false)}>
-                        <span className="logo-icon">🏠</span>
-                        <span className="logo-text">Ekasilody</span>
+                        <img 
+                            src="/images/logo-loading.png" 
+                            alt="KasiConnect" 
+                            className="footer-logo"
+                        />
                     </Link>
                     <button 
                         className="close-button"
