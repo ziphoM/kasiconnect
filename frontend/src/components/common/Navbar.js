@@ -278,7 +278,7 @@ const Navbar = () => {
                 <div className="mobile-menu-header">
                     <Link to="/" className="logo" onClick={() => setMobileMenuOpen(false)}>
                         <img 
-                            src="/images/logo-loading.png" 
+                            src="/images/logo-mobile.png" 
                             alt="KasiConnect" 
                             className="footer-logo"
                         />
