@@ -10,8 +10,8 @@ const Footer = () => {
         <footer className="footer">
             <div className="footer-container">
                 <div className="footer-section">
-                        <img 
-                            src="/images/logo-loading.png" 
+                        <img style={{width:'150px', height:'auto'}}
+                            src="/images/logo-footer.png" 
                             alt="KasiConnect" 
                             className="footer-logo"
                         />
