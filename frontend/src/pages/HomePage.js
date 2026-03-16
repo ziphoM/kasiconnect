@@ -40,7 +40,7 @@ const HomePage = () => {
             icon: 'fa-solid fa-user-shield',
             title: 'Trusted Hustlers',
             description: 'All our hustlers are verified locals from the hood',
-            color: '#282fff'
+            color: '#0080FE'
         },
         {
             icon: 'fa-solid fa-bolt',
