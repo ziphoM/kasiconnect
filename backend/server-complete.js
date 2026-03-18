@@ -3449,48 +3449,38 @@ app.get('/api/admin/export', authenticateToken, async (req, res) => {
 
 // ========== NOTIFICATION ROUTES ==========
 
-// Get user notifications
+// Get user notifications - FIXED VERSION
 app.get('/api/notifications', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
-        const { limit = 20, offset = 0, unreadOnly = false } = req.query;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = parseInt(req.query.offset) || 0;
+        const unreadOnly = req.query.unreadOnly === 'true';
 
         console.log(`📨 Fetching notifications for user ${userId}`);
 
         let query = `
-            SELECT id, type, title, message, link, icon, data, is_read, created_at
+            SELECT id, type, title, message, link, icon, is_read, created_at
             FROM notifications
             WHERE user_id = ?
         `;
         const params = [userId];
 
-        if (unreadOnly === 'true') {
+        if (unreadOnly) {
             query += ' AND is_read = 0';
         }
 
         query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-        params.push(parseInt(limit), parseInt(offset));
+        params.push(limit, offset);
+
+        console.log('Executing query with params:', params);
 
         const [notifications] = await pool.execute(query, params);
         
-        // Parse JSON data
-        notifications.forEach(n => {
-            if (n.data) {
-                try {
-                    n.data = JSON.parse(n.data);
-                } catch (e) {
-                    n.data = null;
-                }
-            }
-        });
-
-        // Get unread count
         const [countResult] = await pool.execute(
             'SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND is_read = 0',
             [userId]
         );
-
-        console.log(`✅ Found ${notifications.length} notifications for user ${userId}`);
 
         res.json({
             success: true,
@@ -3502,11 +3492,14 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error fetching notifications:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch notifications', error: error.message });
+        console.error('❌ Error in notifications endpoint:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to fetch notifications',
+            error: error.message 
+        });
     }
 });
-
 // Mark notification as read
 app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
     try {
