@@ -1,0 +1,364 @@
+/* frontend/src/components/workers/ProfileCompletionWidget.css */
+
+.profile-completion-widget {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.profile-completion-widget:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border-color: #FF6B35;
+}
+
+.completion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.completion-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.completion-header h3 i {
+    color: #FF6B35;
+    font-size: 1.2rem;
+}
+
+.tips-toggle {
+    background: none;
+    border: none;
+    color: #9CA3AF;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tips-toggle:hover {
+    color: #FF6B35;
+    background: #FFF1E6;
+    transform: scale(1.1);
+}
+
+.completion-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.completion-circle-container {
+    flex-shrink: 0;
+}
+
+.completion-circle {
+    width: 100px;
+    height: 100px;
+}
+
+.percentage-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    fill: currentColor;
+}
+
+.completion-message {
+    flex: 1;
+}
+
+.completion-title {
+    margin: 0 0 0.75rem 0;
+    color: #4B5563;
+    font-size: 0.95rem;
+}
+
+.completion-title strong {
+    color: #1F2937;
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+/* SINGLE EDIT PROFILE BUTTON - Clean and prominent */
+.edit-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+}
+
+.edit-profile-btn:hover {
+    background: #F45B1E;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 107, 53, 0.3);
+}
+
+.edit-profile-btn i {
+    font-size: 1rem;
+}
+
+/* Perfect Profile State */
+.perfect-profile {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #D1FAE5;
+    border-radius: 12px;
+    border: 2px solid #10B981;
+    margin-top: 0.5rem;
+}
+
+.perfect-icon {
+    font-size: 2rem;
+    color: #F59E0B;
+}
+
+.perfect-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.perfect-text strong {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #065F46;
+}
+
+.perfect-text span {
+    font-size: 0.9rem;
+    color: #047857;
+}
+
+/* Benefits Grid */
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #F9FAFB;
+    border-radius: 10px;
+    transition: transform 0.2s;
+}
+
+.benefit-item:hover {
+    transform: translateY(-2px);
+    background: #FFF1E6;
+}
+
+.benefit-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.benefit-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4B5563;
+    line-height: 1.3;
+}
+
+/* Missing Fields Tips */
+.missing-fields-tips {
+    background: #FFF1E6;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 1rem;
+    border-left: 4px solid #FF6B35;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.missing-fields-tips h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.missing-fields-tips h4 i {
+    color: #F59E0B;
+}
+
+.tips-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+}
+
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(255, 107, 53, 0.1);
+}
+
+.tip-item:last-child {
+    border-bottom: none;
+}
+
+.tip-item i {
+    color: #FF6B35;
+    font-size: 0.8rem;
+}
+
+.tip-item span {
+    color: #4B5563;
+    font-size: 0.9rem;
+}
+
+.tip-note {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(255, 107, 53, 0.1);
+    border-radius: 8px;
+    margin-top: 0.75rem;
+}
+
+.tip-note i {
+    color: #F59E0B;
+    font-size: 1rem;
+}
+
+.tip-note span {
+    color: #1F2937;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Show Tips Button */
+.show-tips-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: none;
+    border: 1px dashed #D1D5DB;
+    border-radius: 8px;
+    color: #6B7280;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.show-tips-btn:hover {
+    border-color: #FF6B35;
+    color: #FF6B35;
+    background: #FFF1E6;
+}
+
+.show-tips-btn i {
+    transition: transform 0.2s;
+}
+
+.show-tips-btn:hover i {
+    transform: translateY(2px);
+}
+
+/* Loading State */
+.profile-completion-widget.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 150px;
+}
+
+.spinner-small {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #F3F4F6;
+    border-top-color: #FF6B35;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .completion-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .benefits-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .benefit-item {
+        padding: 0.5rem;
+    }
+    
+    .perfect-profile {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .edit-profile-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

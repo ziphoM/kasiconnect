@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAlert } from '../../contexts/AlertContext';
+import ProfileCompletionWidget from './ProfileCompletionWidget';
 import './WorkerDashboard.css';
 
 const WorkerDashboard = () => {
@@ -243,26 +244,9 @@ const WorkerDashboard = () => {
                             <p className="welcome-subtitle">Here's your job hunting progress</p>
                         </div>
                     </div>
-                    
-                    {/* Profile Completion Ring */}
-                    <div className="completion-ring">
-                        <svg className="ring-progress" width="80" height="80">
-                            <circle className="ring-bg" cx="40" cy="40" r="36" />
-                            <circle 
-                                className="ring-fill" 
-                                cx="40" 
-                                cy="40" 
-                                r="36" 
-                                style={{ 
-                                    strokeDasharray: `${2 * Math.PI * 36}`,
-                                    strokeDashoffset: `${2 * Math.PI * 36 * (1 - profileCompletion / 100)}`
-                                }} 
-                            />
-                        </svg>
-                        <span className="completion-percent">{profileCompletion}%</span>
-                        <span className="completion-label">Profile</span>
-                    </div>
                 </div>
+                
+                <ProfileCompletionWidget />
 
                 {/* Pass Status Card */}
                 {activePass ? (

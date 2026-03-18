@@ -1,0 +1,143 @@
+/* frontend/src/contexts/AlertContext.css */
+
+.alert-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.alert-modal {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-modal-header {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+}
+
+.alert-modal-header.alert-success {
+    background: #10B981;
+}
+
+.alert-modal-header.alert-error,
+.alert-modal-header.alert-danger {
+    background: #EF4444;
+}
+
+.alert-modal-header.alert-warning {
+    background: #F59E0B;
+}
+
+.alert-modal-header.alert-info {
+    background: #3B82F6;
+}
+
+.alert-icon {
+    font-size: 24px;
+}
+
+.alert-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+}
+
+.alert-modal-body {
+    padding: 24px;
+    text-align: center;
+}
+
+.alert-modal-body p {
+    margin: 0;
+    color: #1F2937;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.alert-modal-actions {
+    display: flex;
+    gap: 12px;
+    padding: 0 24px 24px 24px;
+}
+
+.alert-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.alert-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.alert-btn:active {
+    transform: translateY(0);
+}
+
+.alert-btn-cancel {
+    background: #6B7280 !important; /* Grey fallback */
+}
+
+.alert-btn-cancel:hover {
+    background: #4B5563 !important;
+}
+
+.alert-btn-confirm {
+    /* Color is set dynamically from JavaScript */
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .alert-modal {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .alert-modal-actions {
+        flex-direction: column;
+    }
+}

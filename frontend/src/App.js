@@ -8,7 +8,10 @@ import ScrollToTop from './components/common/ScrollToTop';
 import AdminProfile from './components/admin/AdminProfile';
 import ClientPackagesDashboard from './components/clients/ClientPackagesDashboard';
 import ClientJobs from './components/clients/ClientJobs';
+import NotificationsPage from './pages/NotificationsPage';
+import { NotificationProvider } from './contexts/NotificationContext';
 import './App.css';
+
 
 // Components
 import Navbar from './components/common/Navbar';
@@ -104,7 +107,12 @@ function AppContent() {
                     <ProtectedRoute allowedTypes={['worker']}>
                         <ApplicationsPage />
                     </ProtectedRoute>
-                } />  
+                } /> 
+                <Route path="/worker/profile" element={
+                    <ProtectedRoute allowedTypes={['worker']}>
+                        <WorkerProfile />
+                    </ProtectedRoute>
+                } />                 
                 {/* Protected Routes - Clients */}
                 <Route path="/client/packages" element={
                     <ProtectedRoute allowedTypes={['client']}>
@@ -167,7 +175,14 @@ function AppContent() {
                     <ProtectedRoute allowedTypes={['admin']}>
                         <AdminProfile />
                     </ProtectedRoute>
-                } />              
+                } /> 
+
+                {/* Notification Route */}
+                <Route path="/notifications" element={
+                    <ProtectedRoute>
+                        <NotificationsPage />
+                    </ProtectedRoute>
+                } />                            
 
                 {/* 404 - Redirect to Home */}
                 <Route path="*" element={<Navigate to="/" />} />
@@ -182,7 +197,9 @@ function App() {
         <Router>
             <AuthProvider>
                 <AlertProvider>
-                    <AppContent />
+                    <NotificationProvider>
+                        <AppContent />
+                    </NotificationProvider>
                 </AlertProvider>
             </AuthProvider>
         </Router>

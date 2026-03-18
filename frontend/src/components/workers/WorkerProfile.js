@@ -7,14 +7,13 @@ import { useAlert } from '../../contexts/AlertContext';
 import './WorkerProfile.css';
 
 const WorkerProfile = () => {
-    const { id } = useParams();
+    const { id } = useParams(); // This might be undefined for /worker/profile route
     const navigate = useNavigate();
     const location = useLocation();
     const { user, updateUser } = useAuth();
     const alert = useAlert();
-    const API_BASE_URL = 'http://localhost:5000'; // backend URL
+    const API_BASE_URL = 'http://localhost:5000';
     
-    // Get navigation state
     const fromClient = location.state?.fromClient;
     const jobId = location.state?.jobId;
     
@@ -28,7 +27,6 @@ const WorkerProfile = () => {
     const [hasHired, setHasHired] = useState(false);
     const [isHiringClient, setIsHiringClient] = useState(false);
     const [activeTab, setActiveTab] = useState('profile');
-    
     
     const [profileData, setProfileData] = useState({
         name: '',
@@ -60,22 +58,40 @@ const WorkerProfile = () => {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+    // ========== FIX: Handle missing ID by redirecting to user's own profile ==========
     useEffect(() => {
-        loadWorkerProfile();
-        if (user?.user_type === 'client' && jobId) {
-            checkHireStatus();
-            checkIfHiringClient();
-        }
-    }, [id, user, jobId]);
+        console.log('WorkerProfile mounted with:', { 
+            idFromParams: id, 
+            userId: user?.id, 
+            userType: user?.user_type,
+            path: location.pathname
+        });
 
-    const loadWorkerProfile = async () => {
+        // If we're on /worker/profile route (no ID) and user is logged in as worker
+        if (!id && user?.user_type === 'worker' && user?.id) {
+            console.log(`🔄 Redirecting to /workers/${user.id}`);
+            navigate(`/workers/${user.id}`, { replace: true });
+            return;
+        }
+
+        // If we have an ID, load the profile
+        if (id) {
+            loadWorkerProfile(id);
+        } else if (user?.user_type === 'worker' && !id) {
+            // This case should be handled by the redirect above, but just in case
+            setError('No worker ID provided');
+            setLoading(false);
+        }
+    }, [id, user, location.pathname]);
+
+    const loadWorkerProfile = async (workerId) => {
+        console.log(`📥 Loading worker profile for ID: ${workerId}`);
         setLoading(true);
         try {
-            const response = await api.get(`/workers/${id}`);
+            const response = await api.get(`/workers/${workerId}`);
             console.log('📥 Worker API Response:', response.data);
             
             if (response.data.success) {
-
                 console.log('Worker data received:', response.data.data);
                 console.log('Phone from API:', response.data.data.phone);
                 console.log('Email from API:', response.data.data.email);
@@ -106,15 +122,23 @@ const WorkerProfile = () => {
                 setError('Worker not found');
             }
         } catch (error) {
-            console.error('Error loading worker:', error);
+            console.error('❌ Error loading worker:', error);
             setError('Failed to load worker profile');
         } finally {
             setLoading(false);
         }
     };
 
+    // ========== FIX: Add a separate useEffect for hire status checks ==========
+    useEffect(() => {
+        if (user?.user_type === 'client' && jobId && id) {
+            checkHireStatus();
+            checkIfHiringClient();
+        }
+    }, [id, user, jobId]);
+
     const checkHireStatus = async () => {
-        if (!user || user.user_type !== 'client' || !jobId) return;
+        if (!user || user.user_type !== 'client' || !jobId || !id) return;
         
         try {
             console.log('Checking hire status for job:', jobId, 'worker:', id);

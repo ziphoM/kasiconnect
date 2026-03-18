@@ -355,7 +355,7 @@ const HomePage = () => {
             <section className="how-it-works-section">
                 <div className="container">
                     <div className="section-header center">
-                        <h2 className="section-title">How it works — <span className="highlight">sharp sharp!</span></h2>
+                        <h2 className="section-title">How it works — <span className="highlight">grand grand!</span></h2>
                         <p className="section-subtitle">Three simple steps to get things done in your kasi</p>
                     </div>
                     
@@ -537,7 +537,7 @@ const HomePage = () => {
                         </div>
                         <div className="ussd-content">
                             <h2>No smartphone? <span className="highlight">No stress!</span></h2>
-                            <p>Use any phone — even a mzansi phone — to find work or post jobs</p>
+                            <p>Use any phone — even a Tilili — to find work or post jobs</p>
                             <div className="ussd-code-box">
                                 <span className="ussd-label">Dial:</span>
                                 <span className="ussd-number">*130*469#</span>
