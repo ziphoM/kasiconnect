@@ -2352,83 +2352,49 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
         const offset = parseInt(req.query.offset) || 0;
         const unreadOnly = req.query.unreadOnly === 'true';
 
-        console.log('='.repeat(50));
-        console.log('🔍 NOTIFICATIONS DEBUG');
-        console.log('User ID:', userId, 'Type:', typeof userId);
-        console.log('Limit:', limit, 'Type:', typeof limit);
-        console.log('Offset:', offset, 'Type:', typeof offset);
-        console.log('Unread Only:', unreadOnly);
-        console.log('='.repeat(50));
+        console.log('📨 Notifications request:', { userId, limit, offset, unreadOnly });
 
-        // Test 1: Simple query without params
-        try {
-            const [simpleTest] = await pool.execute('SELECT 1 as test');
-            console.log('✅ Simple query works:', simpleTest[0]);
-        } catch (e) {
-            console.error('❌ Simple query failed:', e.message);
+        // Build the WHERE clause
+        let whereClause = `user_id = ${userId}`; // Safe because userId is a number from token
+        if (unreadOnly) {
+            whereClause += ' AND is_read = 0';
         }
 
-        // Test 2: Query with only userId
-        try {
-            const [userTest] = await pool.execute(
-                'SELECT COUNT(*) as count FROM notifications WHERE user_id = ?',
-                [userId]
-            );
-            console.log('✅ User query works, count:', userTest[0].count);
-        } catch (e) {
-            console.error('❌ User query failed:', e.message);
-        }
+        // Use string concatenation for LIMIT and OFFSET (safe because they're numbers)
+        const query = `
+            SELECT id, type, title, message, link, icon, is_read, created_at
+            FROM notifications
+            WHERE ${whereClause}
+            ORDER BY created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+        `;
 
-        // Test 3: Try different LIMIT syntaxes
-        const tests = [
-            {
-                name: 'Syntax 1: LIMIT ? OFFSET ?',
-                query: 'SELECT id FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
-                params: [userId, limit, offset]
-            },
-            {
-                name: 'Syntax 2: LIMIT ?, ?',
-                query: 'SELECT id FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?, ?',
-                params: [userId, offset, limit]
-            },
-            {
-                name: 'Syntax 3: String concatenation',
-                query: `SELECT id FROM notifications WHERE user_id = ${userId} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`,
-                params: []
-            }
-        ];
+        console.log('Executing query:', query);
 
-        for (const test of tests) {
-            try {
-                console.log(`\n🔧 Testing ${test.name}`);
-                console.log('Query:', test.query);
-                console.log('Params:', test.params);
-                
-                const [result] = await pool.execute(test.query, test.params);
-                console.log(`✅ Success! Found ${result.length} rows`);
-            } catch (e) {
-                console.error(`❌ Failed:`, e.message);
-                if (e.sql) console.error('SQL:', e.sql);
-                if (e.sqlMessage) console.error('SQL Message:', e.sqlMessage);
-            }
-        }
+        const [notifications] = await pool.execute(query);
+        
+        // Get unread count (this can use parameter binding)
+        const [countResult] = await pool.execute(
+            'SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND is_read = 0',
+            [userId]
+        );
 
-        // If we get here, return success with empty array
+        console.log(`✅ Found ${notifications.length} notifications for user ${userId}`);
+
         res.json({
             success: true,
             data: {
-                notifications: [],
-                unread_count: 0,
-                total: 0,
-                debug: 'Check server logs'
+                notifications,
+                unread_count: countResult[0].unread_count,
+                total: notifications.length
             }
         });
 
     } catch (error) {
-        console.error('❌ Fatal error:', error);
+        console.error('❌ Error in notifications endpoint:', error);
         res.status(500).json({ 
             success: false, 
-            message: 'Debug endpoint failed',
+            message: 'Failed to fetch notifications',
             error: error.message 
         });
     }
