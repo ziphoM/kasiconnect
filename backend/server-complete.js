@@ -8,7 +8,6 @@ const { body, validationResult } = require('express-validator');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { createNotification, createBulkNotifications } = require('./utils/notifications');
 require('dotenv').config();
 
 // Import database connection
@@ -168,33 +167,11 @@ app.post('/api/auth/register', [
                  VALUES (?, ?, ?, ?, ?)`,
                 [userId, 'Not specified', 100, 300, 5]
             );
-            
-            // Welcome notification for worker
-            await createNotification({
-                userId: userId,
-                type: 'welcome',
-                title: '👋 Welcome to KasiConnect!',
-                message: 'Complete your profile to start getting job offers.',
-                link: '/worker/profile',
-                icon: 'fas fa-hand-wave',
-                data: {}
-            });
         } else if (user_type === 'client') {
             await pool.execute(
                 'INSERT INTO client_profiles (user_id, preferred_payment_method) VALUES (?, ?)',
                 [userId, 'cash']
             );
-            
-            // Welcome notification for client
-            await createNotification({
-                userId: userId,
-                type: 'welcome',
-                title: '👋 Welcome to KasiConnect!',
-                message: 'Post your first job and find trusted workers.',
-                link: '/jobs/post',
-                icon: 'fas fa-hand-wave',
-                data: {}
-            });
         }
 
         // Generate token
@@ -673,7 +650,6 @@ app.post('/api/jobs/:id/apply', authenticateToken, async (req, res) => {
         const jobId = req.params.id;
         const workerId = req.user.userId;
         const { proposed_rate, message } = req.body;
-        const workerName = req.user.name;
 
         console.log('='.repeat(50));
         console.log('📝 JOB APPLICATION REQUEST');
@@ -784,24 +760,6 @@ app.post('/api/jobs/:id/apply', authenticateToken, async (req, res) => {
         );
 
         await connection.commit();
-
-        // Get job details for notification
-        const [jobDetails] = await connection.execute(
-            'SELECT client_id, title FROM jobs WHERE id = ?',
-            [jobId]
-        );
-        
-        // Notify client about new application
-        await createNotification({
-            userId: jobDetails[0].client_id,
-            type: 'new_application',
-            title: '📬 New Job Application',
-            message: `${workerName} applied for "${jobDetails[0].title}" with a quote of R${proposed_rate}`,
-            link: `/jobs/${jobId}`,
-            icon: 'fas fa-file-signature',
-            data: { jobId, workerId, proposed_rate }
-        });
-
         connection.release();
 
         console.log('✅ Application submitted successfully. ID:', result.insertId);
@@ -827,7 +785,7 @@ app.post('/api/jobs/:id/apply', authenticateToken, async (req, res) => {
     }
 });
 
-// ========== HIRE WORKER ENDPOINT ==========
+// ========== FIXED HIRE WORKER ENDPOINT ==========
 app.post('/api/jobs/:jobId/hire', authenticateToken, async (req, res) => {
     const connection = await pool.getConnection();
     
@@ -835,7 +793,6 @@ app.post('/api/jobs/:jobId/hire', authenticateToken, async (req, res) => {
         const { jobId } = req.params;
         const clientId = req.user.userId;
         const { worker_id, agreed_rate } = req.body;
-        const clientName = req.user.name;
 
         console.log('='.repeat(50));
         console.log('🤝 HIRE WORKER REQUEST');
@@ -941,24 +898,15 @@ app.post('/api/jobs/:jobId/hire', authenticateToken, async (req, res) => {
         );
         console.log('Application accepted');
 
-        // 7. Get all other applications to reject
-        const [otherApps] = await connection.execute(
-            `SELECT worker_id FROM job_applications 
-            WHERE job_id = ? AND worker_id != ? AND status = 'pending'`,
+        // 7. Reject all other applications
+        const [rejectResult] = await connection.execute(
+            `UPDATE job_applications SET status = 'rejected' 
+            WHERE job_id = ? AND worker_id != ?`,
             [jobId, worker_id]
         );
+        console.log(`${rejectResult.affectedRows} other applications rejected`);
 
-        // 8. Reject all other applications
-        if (otherApps.length > 0) {
-            await connection.execute(
-                `UPDATE job_applications SET status = 'rejected' 
-                WHERE job_id = ? AND worker_id != ?`,
-                [jobId, worker_id]
-            );
-            console.log(`${otherApps.length} other applications rejected`);
-        }
-
-        // 9. CREATE JOB_HIRES RECORD
+        // 8. CREATE JOB_HIRES RECORD
         const [hireResult] = await connection.execute(
             `INSERT INTO job_hires 
             (job_id, client_id, worker_id, package_id, hire_fee, status, created_at)
@@ -967,7 +915,7 @@ app.post('/api/jobs/:jobId/hire', authenticateToken, async (req, res) => {
         );
         console.log('✅ Job hire record created with ID:', hireResult.insertId);
 
-        // 10. Reveal worker contact info for this client
+        // 9. Reveal worker contact info for this client
         console.log('Revealing worker contact info...');
         await connection.execute(
             `UPDATE worker_profiles 
@@ -978,39 +926,13 @@ app.post('/api/jobs/:jobId/hire', authenticateToken, async (req, res) => {
         );
         console.log('✅ Worker contact info revealed');
 
-        // 11. Get worker contact info
+        // 10. Get worker contact info
         const [worker] = await connection.execute(
             `SELECT name, phone, email FROM users WHERE id = ?`,
             [worker_id]
         );
 
         await connection.commit();
-
-        // 12. Send notifications
-        // Notify hired worker
-        await createNotification({
-            userId: worker_id,
-            type: 'hired',
-            title: '🎉 You Got Hired!',
-            message: `Congratulations! You've been hired for "${job.title}" at R${agreed_rate}`,
-            link: `/jobs/${jobId}`,
-            icon: 'fas fa-handshake',
-            data: { jobId, clientId, agreed_rate }
-        });
-
-        // Notify rejected applicants
-        for (const app of otherApps) {
-            await createNotification({
-                userId: app.worker_id,
-                type: 'rejected',
-                title: '❌ Application Update',
-                message: `The job "${job.title}" has been assigned to another worker. Keep applying!`,
-                link: '/jobs',
-                icon: 'fas fa-times-circle',
-                data: { jobId }
-            });
-        }
-
         connection.release();
 
         console.log('✅ Worker hired successfully');
@@ -1325,6 +1247,7 @@ const workerUpload = multer({
     }
 });
 
+// Upload worker profile picture
 app.post('/api/worker/profile/upload-picture', authenticateToken, workerUpload.single('profile_picture'), async (req, res) => {
     try {
         if (req.user.userType !== 'worker') {
@@ -1647,18 +1570,6 @@ app.post('/api/worker/buy-application-pass', authenticateToken, async (req, res)
         );
 
         await connection.commit();
-
-        // Send notification
-        await createNotification({
-            userId: workerId,
-            type: 'pass_purchased',
-            title: '🎫 Application Pass Purchased',
-            message: `You've successfully purchased a ${pass_type} pass with ${config.applications || 'Unlimited'} applications.`,
-            link: '/worker/vouchers',
-            icon: 'fas fa-ticket-alt',
-            data: { pass_id: passResult.insertId, pass_type, applications: config.applications }
-        });
-
         connection.release();
 
         res.json({
@@ -1835,31 +1746,6 @@ app.post('/api/jobs/:jobId/complete', authenticateToken, async (req, res) => {
         }
 
         await connection.commit();
-
-        // 5. Create notification for worker about completion
-        await createNotification({
-            userId: worker_id,
-            type: 'job_completed',
-            title: '💰 Payment Received!',
-            message: `Your work for "${job.title}" has been marked as complete. Payment has been processed.`,
-            link: `/jobs/${jobId}`,
-            icon: 'fas fa-circle-check',
-            data: { jobId, rating, review }
-        });
-
-        // 6. Create notification for review if provided
-        if (rating) {
-            await createNotification({
-                userId: worker_id,
-                type: 'new_review',
-                title: '⭐ New Review Received',
-                message: `You received a ${rating}-star review from your client!`,
-                link: `/workers/${worker_id}`,
-                icon: 'fas fa-star',
-                data: { jobId, rating, review }
-            });
-        }
-
         connection.release();
 
         console.log('✅ Job completed successfully');
@@ -2032,10 +1918,6 @@ app.get('/api/client/jobs', authenticateToken, async (req, res) => {
                 end_time: job.end_time
             } : null
         }));
-
-        jobs.forEach(job => {
-            console.log(`Job ${job.id}: status=${job.status}, worker_id=${job.worker_id || 'none'}`);
-        });
 
         res.json({ success: true, data: formattedJobs });
 
@@ -2356,18 +2238,6 @@ app.post('/api/client/buy-package', authenticateToken, async (req, res) => {
         );
 
         await connection.commit();
-
-        // Send notification
-        await createNotification({
-            userId: clientId,
-            type: 'package_purchased',
-            title: '📦 Hire Package Purchased',
-            message: `You've purchased a ${package_type} package with ${config.hires || 'Unlimited'} hires.`,
-            link: '/client/my-packages',
-            icon: 'fas fa-box-open',
-            data: { package_id: creditResult.insertId, package_type, hires: config.hires }
-        });
-
         connection.release();
 
         res.json({
@@ -2472,8 +2342,172 @@ app.get('/api/client/hire-credits', authenticateToken, async (req, res) => {
     }
 });
 
+// ========== NOTIFICATION ROUTES ==========
+
+// Get user notifications - FIXED VERSION
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = parseInt(req.query.offset) || 0;
+        const unreadOnly = req.query.unreadOnly === 'true';
+
+        console.log('📨 Notifications request:', { userId, limit, offset, unreadOnly });
+
+        let query = `
+            SELECT id, type, title, message, link, icon, is_read, created_at
+            FROM notifications
+            WHERE user_id = ?
+        `;
+        const params = [userId];
+
+        if (unreadOnly) {
+            query += ' AND is_read = 0';
+        }
+
+        query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+        params.push(limit, offset);
+
+        console.log('Executing query with params:', params);
+
+        const [notifications] = await pool.execute(query, params);
+        
+        // Get unread count
+        const [countResult] = await pool.execute(
+            'SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND is_read = 0',
+            [userId]
+        );
+
+        console.log(`✅ Found ${notifications.length} notifications for user ${userId}`);
+
+        res.json({
+            success: true,
+            data: {
+                notifications,
+                unread_count: countResult[0].unread_count,
+                total: notifications.length
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Error in notifications endpoint:', error);
+        console.error('Error message:', error.message);
+        console.error('Error sql:', error.sql);
+        console.error('Error sqlMessage:', error.sqlMessage);
+        
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to fetch notifications',
+            error: error.message,
+            sqlError: error.sqlMessage
+        });
+    }
+});
+
+// Get unread count only
+app.get('/api/notifications/unread-count', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        console.log(`🔔 Checking unread count for user ${userId}`);
+
+        const [result] = await pool.execute(
+            'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0',
+            [userId]
+        );
+
+        res.json({ 
+            success: true, 
+            data: { 
+                unread_count: result[0].count 
+            } 
+        });
+
+    } catch (error) {
+        console.error('❌ Error fetching unread count:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to fetch unread count',
+            error: error.message 
+        });
+    }
+});
+
+// Mark notification as read
+app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
+    try {
+        const notificationId = req.params.id;
+        const userId = req.user.userId;
+
+        console.log(`📌 Marking notification ${notificationId} as read for user ${userId}`);
+
+        const [result] = await pool.execute(
+            'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?',
+            [notificationId, userId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Notification not found' });
+        }
+
+        res.json({ success: true, message: 'Notification marked as read' });
+
+    } catch (error) {
+        console.error('❌ Error marking notification as read:', error);
+        res.status(500).json({ success: false, message: 'Failed to update notification' });
+    }
+});
+
+// Mark all notifications as read
+app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        console.log(`📌 Marking all notifications as read for user ${userId}`);
+
+        const [result] = await pool.execute(
+            'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0',
+            [userId]
+        );
+
+        res.json({ 
+            success: true, 
+            message: `Marked ${result.affectedRows} notifications as read`,
+            count: result.affectedRows 
+        });
+
+    } catch (error) {
+        console.error('❌ Error marking all notifications as read:', error);
+        res.status(500).json({ success: false, message: 'Failed to update notifications' });
+    }
+});
+
+// Delete notification
+app.delete('/api/notifications/:id', authenticateToken, async (req, res) => {
+    try {
+        const notificationId = req.params.id;
+        const userId = req.user.userId;
+
+        console.log(`🗑️ Deleting notification ${notificationId} for user ${userId}`);
+
+        const [result] = await pool.execute(
+            'DELETE FROM notifications WHERE id = ? AND user_id = ?',
+            [notificationId, userId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Notification not found' });
+        }
+
+        res.json({ success: true, message: 'Notification deleted' });
+
+    } catch (error) {
+        console.error('❌ Error deleting notification:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete notification' });
+    }
+});
+
 // ========== ADMIN ROUTES ==========
-// (Keeping your existing admin routes - they look correct)
 
 // Get admin profile
 app.get('/api/admin/profile', authenticateToken, async (req, res) => {
@@ -3026,7 +3060,6 @@ app.get('/api/admin/activity-log', authenticateToken, async (req, res) => {
 });
 
 // ========== ADMIN USER MANAGEMENT ENDPOINTS ==========
-// (Keeping your existing admin user management endpoints)
 
 // Make user admin
 app.post('/api/admin/users/:userId/make-admin', authenticateToken, async (req, res) => {
@@ -3236,6 +3269,7 @@ app.delete('/api/admin/users/:userId', authenticateToken, async (req, res) => {
 });
 
 // ========== ADMIN JOB MANAGEMENT ENDPOINTS ==========
+
 // Feature job (toggle featured status)
 app.post('/api/admin/jobs/:jobId/feature', authenticateToken, async (req, res) => {
     try {
@@ -3447,157 +3481,22 @@ app.get('/api/admin/export', authenticateToken, async (req, res) => {
     }
 });
 
-// ========== NOTIFICATION ROUTES ==========
-
-// Get user notifications - FIXED VERSION
-app.get('/api/notifications', authenticateToken, async (req, res) => {
-    try {
-        const userId = req.user.userId;
-        const limit = parseInt(req.query.limit) || 20;
-        const offset = parseInt(req.query.offset) || 0;
-        const unreadOnly = req.query.unreadOnly === 'true';
-
-        console.log(`📨 Fetching notifications for user ${userId}`);
-
-        let query = `
-            SELECT id, type, title, message, link, icon, is_read, created_at
-            FROM notifications
-            WHERE user_id = ?
-        `;
-        const params = [userId];
-
-        if (unreadOnly) {
-            query += ' AND is_read = 0';
-        }
-
-        query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-        params.push(limit, offset);
-
-        console.log('Executing query with params:', params);
-
-        const [notifications] = await pool.execute(query, params);
-        
-        const [countResult] = await pool.execute(
-            'SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND is_read = 0',
-            [userId]
-        );
-
-        res.json({
-            success: true,
-            data: {
-                notifications,
-                unread_count: countResult[0].unread_count,
-                total: notifications.length
-            }
-        });
-
-    } catch (error) {
-        console.error('❌ Error in notifications endpoint:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Failed to fetch notifications',
-            error: error.message 
-        });
-    }
-});
-// Mark notification as read
-app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
-    try {
-        const notificationId = req.params.id;
-        const userId = req.user.userId;
-
-        console.log(`📌 Marking notification ${notificationId} as read for user ${userId}`);
-
-        const [result] = await pool.execute(
-            'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?',
-            [notificationId, userId]
-        );
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ success: false, message: 'Notification not found' });
-        }
-
-        res.json({ success: true, message: 'Notification marked as read' });
-
-    } catch (error) {
-        console.error('❌ Error marking notification as read:', error);
-        res.status(500).json({ success: false, message: 'Failed to update notification' });
-    }
-});
-
-// Mark all notifications as read
-app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
-    try {
-        const userId = req.user.userId;
-
-        console.log(`📌 Marking all notifications as read for user ${userId}`);
-
-        const [result] = await pool.execute(
-            'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0',
-            [userId]
-        );
-
-        res.json({ 
-            success: true, 
-            message: `Marked ${result.affectedRows} notifications as read`,
-            count: result.affectedRows 
-        });
-
-    } catch (error) {
-        console.error('❌ Error marking all notifications as read:', error);
-        res.status(500).json({ success: false, message: 'Failed to update notifications' });
-    }
-});
-
-// Delete notification
-app.delete('/api/notifications/:id', authenticateToken, async (req, res) => {
-    try {
-        const notificationId = req.params.id;
-        const userId = req.user.userId;
-
-        console.log(`🗑️ Deleting notification ${notificationId} for user ${userId}`);
-
-        const [result] = await pool.execute(
-            'DELETE FROM notifications WHERE id = ? AND user_id = ?',
-            [notificationId, userId]
-        );
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ success: false, message: 'Notification not found' });
-        }
-
-        res.json({ success: true, message: 'Notification deleted' });
-
-    } catch (error) {
-        console.error('❌ Error deleting notification:', error);
-        res.status(500).json({ success: false, message: 'Failed to delete notification' });
-    }
-});
-
-// Get unread count only (lightweight)
-app.get('/api/notifications/unread-count', authenticateToken, async (req, res) => {
-    try {
-        const userId = req.user.userId;
-
-        const [result] = await pool.execute(
-            'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0',
-            [userId]
-        );
-
-        res.json({ success: true, data: { unread_count: result[0].count } });
-
-    } catch (error) {
-        console.error('❌ Error fetching unread count:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch unread count' });
-    }
-});
-
 // ========== TEST ENDPOINT ==========
 app.get('/api/test', (req, res) => {
     res.json({ 
         success: true, 
         message: 'Backend is working!',
         timestamp: new Date().toISOString()
+    });
+});
+
+// Health check
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        service: 'KasiConnect Complete API',
+        version: '3.0.0'
     });
 });
 
