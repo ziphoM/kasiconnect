@@ -6,6 +6,7 @@ const mysql = require('mysql2/promise');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const contactDetectionMiddleware = require('./middleware/contactDetectionMiddleware');
+const { detectContactInfoWithAI } = require('./utils/contactDetection');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -1140,13 +1141,6 @@ app.get('/api/workers/:id', async (req, res) => {
 
 // Update worker profile
 app.put('/api/worker/profile', authenticateToken, contactDetectionMiddleware('profile'), async (req, res) => {
-    // Check bio field
-    if (req.body.bio && detectContactInfo(req.body.bio)) {
-        return res.status(400).json({
-            success: false,
-            message: 'Contact information detected in bio. Please remove phone numbers, emails, or social media handles.'
-        });
-    }
     try {
         const userId = req.user.userId;
         const {
