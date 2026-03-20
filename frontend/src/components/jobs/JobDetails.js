@@ -4,6 +4,7 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAlert } from '../../contexts/AlertContext';
+import { detectContactInfo} from '../../utils/contactFilter';
 import './JobDetails.css';
 
 const formatRating = (rating) => {
@@ -116,19 +117,21 @@ const JobDetails = () => {
 
 const handleApply = async (e) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-        alert.warning('Please login to apply for jobs');
-        navigate('/login', { state: { from: `/jobs/${id}` } });
+    
+    // Check for contact info in message
+    const { hasContact, matches } = detectContactInfo(applicationData.message);
+    
+    if (hasContact) {
+        alert.warning(
+            'Please do not include contact information in your message. ' +
+            'Contact details will be revealed after you are hired.'
+        );
         return;
     }
-
-    if (user?.user_type !== 'worker') {
-        alert.error('Only workers can apply for jobs');
-        return;
-    }
-
-    if (!applicationData.proposed_rate) {
-        alert.warning('Please enter your proposed rate');
+    
+    // Check for contact info in proposed rate (unlikely but check anyway)
+    if (applicationData.proposed_rate.toString().match(/[^0-9]/)) {
+        alert.warning('Please enter a valid numeric rate only.');
         return;
     }
 
@@ -819,6 +822,15 @@ useEffect(() => {
                                                 <span className="rate-label">Quote</span>
                                                 <span className="rate-value">R {app.proposed_rate}</span>
                                             </div>
+
+                                            <div className="contact-warning">
+                                                <i className="fas fa-info-circle"></i>
+                                                <p>
+                                                    <strong>Important:</strong> Do not include contact information in your message.
+                                                    Your phone number and email will be revealed to the client ONLY after you're hired.
+                                                    Sharing contact details early may result in your application being rejected.
+                                                </p>
+                                            </div>                                          
                                             
                                             {app.message && (
                                                 <div className="message-box">

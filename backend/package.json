@@ -9,10 +9,12 @@
     "migrate": "node scripts/migrate.js"
   },
   "dependencies": {
-    "africastalking": "^0.6.0",
+    "africastalking": "^0.7.9",
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
-    "cloudinary": "^1.40.0",
+    "cloudinary": "^2.9.0",
+    "compromise": "^14.15.0",
+    "compromise-stats": "^0.1.1",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
     "express": "^4.22.1",

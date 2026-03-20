@@ -2033,3 +2033,26 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+.contact-warning {
+    background: #FEF3C7;
+    border: 1px solid #F59E0B;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.contact-warning i {
+    color: #F59E0B;
+    font-size: 20px;
+    margin-top: 2px;
+}
+
+.contact-warning p {
+    color: #92400E;
+    margin: 0;
+    font-size: 14px;
+}

@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const mysql = require('mysql2/promise');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
+const contactDetectionMiddleware = require('./middleware/contactDetectionMiddleware');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -576,7 +577,7 @@ app.get('/api/jobs/:id', async (req, res) => {
 });
 
 // Create job (clients only)
-app.post('/api/jobs', authenticateToken, async (req, res) => {
+app.post('/api/jobs', authenticateToken, contactDetectionMiddleware('job'), async (req, res) => {
     try {
         const {
             title, description, category, subcategory,
@@ -643,7 +644,7 @@ app.post('/api/jobs', authenticateToken, async (req, res) => {
 });
 
 // ========== JOB APPLICATION ENDPOINT ==========
-app.post('/api/jobs/:id/apply', authenticateToken, async (req, res) => {
+app.post('/api/jobs/:id/apply', authenticateToken, contactDetectionMiddleware('application'), async (req, res) => {
     const connection = await pool.getConnection();
     
     try {
@@ -1138,7 +1139,14 @@ app.get('/api/workers/:id', async (req, res) => {
 });
 
 // Update worker profile
-app.put('/api/worker/profile', authenticateToken, async (req, res) => {
+app.put('/api/worker/profile', authenticateToken, contactDetectionMiddleware('profile'), async (req, res) => {
+    // Check bio field
+    if (req.body.bio && detectContactInfo(req.body.bio)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Contact information detected in bio. Please remove phone numbers, emails, or social media handles.'
+        });
+    }
     try {
         const userId = req.user.userId;
         const {
@@ -2736,6 +2744,51 @@ app.get('/api/admin/client-packages', authenticateToken, async (req, res) => {
             error: error.message 
         });
     }
+});
+
+// flagged content
+app.get('/api/admin/flagged-content', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.userType !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Admin only' });
+    }
+    
+    const [content] = await pool.execute(`
+      SELECT fc.*, u.name as user_name, u.phone as user_phone
+      FROM flagged_content fc
+      JOIN users u ON fc.user_id = u.id
+      WHERE fc.status = 'pending'
+      ORDER BY fc.confidence DESC
+      LIMIT 50
+    `);
+    
+    res.json({ success: true, data: content });
+  } catch (error) {
+    console.error('Error fetching flagged content:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update flagged content status
+app.put('/api/admin/flagged-content/:id', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.userType !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Admin only' });
+    }
+    
+    const { status, notes } = req.body;
+    
+    await pool.execute(`
+      UPDATE flagged_content 
+      SET status = ?, reviewed_at = NOW(), reviewed_by = ?, notes = ?
+      WHERE id = ?
+    `, [status, req.user.userId, notes, req.params.id]);
+    
+    res.json({ success: true, message: 'Content reviewed' });
+  } catch (error) {
+    console.error('Error updating flagged content:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // Get admin overview
