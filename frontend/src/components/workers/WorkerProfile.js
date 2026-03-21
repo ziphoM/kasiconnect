@@ -68,16 +68,18 @@ const WorkerProfile = () => {
         });
 
         // If we're on /worker/profile route (no ID) and user is logged in as worker
-        if (!id && user?.user_type === 'worker' && user?.id) {
-            console.log(`🔄 Redirecting to /workers/${user.id}`);
-            navigate(`/workers/${user.id}`, { replace: true });
-            return;
-        }
-
-        // If we have an ID, load the profile
-        if (id) {
-            loadWorkerProfile(id);
-        } else if (user?.user_type === 'worker' && !id) {
+    // If no ID in URL but user is worker, load their own profile
+    if (!id && user?.user_type === 'worker') {
+        console.log('🔄 No ID, loading own profile');
+        loadWorkerProfile(user?.id);
+        return;
+    }
+    
+    // If we have an ID, load that profile
+    if (id) {
+        loadWorkerProfile(id);
+    }
+     else if (user?.user_type === 'worker' && !id) {
             // This case should be handled by the redirect above, but just in case
             setError('No worker ID provided');
             setLoading(false);
@@ -85,10 +87,20 @@ const WorkerProfile = () => {
     }, [id, user, location.pathname]);
 
     const loadWorkerProfile = async (workerId) => {
-        console.log(`📥 Loading worker profile for ID: ${workerId}`);
+        // If no ID provided, try to use user's ID from auth context
+        const targetId = workerId || id || user?.id;
+        
+        if (!targetId) {
+            console.error('❌ No worker ID available to load');
+            setError('Unable to load profile');
+            setLoading(false);
+            return;
+        }
+        
+        console.log(`📥 Loading worker profile for ID: ${targetId}`);
         setLoading(true);
         try {
-            const response = await api.get(`/workers/${workerId}`);
+            const response = await api.get(`/workers/${targetId}`);
             console.log('📥 Worker API Response:', response.data);
             
             if (response.data.success) {
@@ -288,6 +300,7 @@ const WorkerProfile = () => {
             const response = await api.put('/worker/profile', dataToSend);
             
             if (response.data.success) {
+                // Update user in AuthContext
                 updateUser({ name: profileData.name });
                 alert.success('Profile updated successfully!');
                 setUpdateSuccess('Profile updated successfully!');
@@ -297,7 +310,12 @@ const WorkerProfile = () => {
                 }
                 
                 setIsEditing(false);
-                loadWorkerProfile();
+                
+                // ✅ FIX: Use the user's ID from auth context, not URL param
+                // Since we're updating the logged-in user's profile
+                if (user?.id) {
+                    loadWorkerProfile(user.id);
+                }
                 
                 setTimeout(() => setUpdateSuccess(''), 3000);
             } else {
