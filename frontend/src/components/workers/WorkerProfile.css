@@ -391,6 +391,23 @@
     color: #6B7280;
     cursor: not-allowed;
 }
+.filter-notice {
+    background: #FEF3C7;
+    border: 1px solid #F59E0B;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #92400E;
+    font-size: 14px;
+}
+
+.filter-notice i {
+    font-size: 18px;
+    color: #F59E0B;
+}
 
 /* Rates Section */
 .rates-section {

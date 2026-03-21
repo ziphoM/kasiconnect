@@ -298,8 +298,13 @@ const WorkerProfile = () => {
             };
             
             const response = await api.put('/worker/profile', dataToSend);
+            const [filterNotice, setFilterNotice] = useState('');
             
             if (response.data.success) {
+                if (response.data.filtered) {
+                    alert.warning('Contact information was detected and removed from your bio. Phone numbers and emails will only be shared after you\'re hired.');
+                    setFilterNotice('Contact information was removed from your bio for your privacy and safety.');
+             }
                 // Update user in AuthContext
                 updateUser({ name: profileData.name });
                 alert.success('Profile updated successfully!');
@@ -514,6 +519,14 @@ const WorkerProfile = () => {
                         ✅ {updateSuccess}
                     </div>
                 )}
+
+                {/* Filter Notice */}
+                {filterNotice && (
+                    <div className="filter-notice">
+                        <i className="fas fa-shield-alt"></i>
+                        {filterNotice}
+                    </div>
+                )}               
 
                 {/* Error Message */}
                 {error && (

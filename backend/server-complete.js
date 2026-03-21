@@ -6,7 +6,7 @@ const mysql = require('mysql2/promise');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const contactDetectionMiddleware = require('./middleware/contactDetectionMiddleware');
-const { detectContactInfoWithAI } = require('./utils/contactDetection');
+const { detectContactInfo, sanitizeContactInfo, logSuspiciousActivity } = require('./utils/contactDetection');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -1076,6 +1076,11 @@ app.get('/api/workers/:id', async (req, res) => {
             }
         }
 
+        if (profile.bio) {
+            // ✅ Always sanitize bio when displaying (double protection)
+            profile.bio = sanitizeContactInfo(profile.bio);
+        }        
+
         // Get reviews
         let reviews = [];
         try {
@@ -1143,13 +1148,28 @@ app.get('/api/workers/:id', async (req, res) => {
 app.put('/api/worker/profile', authenticateToken, contactDetectionMiddleware('profile'), async (req, res) => {
     try {
         const userId = req.user.userId;
-        const {
+        let {
             name, email, phone, township, address,
             primary_skill, skills, experience_years,
             hourly_rate_min, hourly_rate_max,
             available_days, available_hours,
             travel_radius_km, bio
         } = req.body;
+
+        // ✅ Filter contact info from bio BEFORE saving
+        if (bio) {
+            const detection = detectContactInfo(bio);
+            if (detection.hasContact) {
+                // Log the violation
+                await logSuspiciousActivity(userId, 'profile', bio, detection);
+                
+                // Sanitize the bio (replace contact info with [HIDDEN])
+                bio = sanitizeContactInfo(bio);
+                
+                // Add a warning message to the response
+                res.setHeader('X-Contact-Filtered', 'true');
+            }
+        }
 
         // Update users table
         await pool.execute(
@@ -1188,7 +1208,7 @@ app.put('/api/worker/profile', authenticateToken, contactDetectionMiddleware('pr
                     available_days || null,
                     available_hours || null,
                     travel_radius_km || 5,
-                    bio || null,
+                    bio || null, // This is now sanitized
                     userId
                 ]
             );
@@ -1214,7 +1234,11 @@ app.put('/api/worker/profile', authenticateToken, contactDetectionMiddleware('pr
             );
         }
 
-        res.json({ success: true, message: 'Profile updated successfully' });
+        res.json({ 
+            success: true, 
+            message: 'Profile updated successfully',
+            filtered: bio !== req.body.bio // Let frontend know if filtering occurred
+        });
 
     } catch (error) {
         console.error('Update profile error:', error);
